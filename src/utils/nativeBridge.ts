@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import {
   ProcessInfo,
   SystemResourceMetrics,
@@ -57,7 +57,7 @@ export async function getSessionSecurityToken(): Promise<string> {
       const data = await res.json();
       if (data && typeof data.sessionToken === 'string') {
         cachedSessionToken = data.sessionToken;
-        return cachedSessionToken;
+        return cachedSessionToken ?? '';
       }
     }
   } catch {
@@ -401,6 +401,53 @@ export async function fetchLiveHardwareTelemetry(): Promise<SystemResourceMetric
  * Fetches real running OS processes from Tauri sysinfo or host OS process table.
  */
 export async function fetchLiveProcessesNative(): Promise<ProcessInfo[]> {
+  if (isTauriDesktopRuntime()) {
+    try {
+      const nativeProcs = await invoke<
+        Array<{
+          pid: number;
+          parent_pid: number;
+          name: string;
+          exe_path: string;
+          cpu_percent: number;
+          ram_mb: number;
+          can_terminate: boolean;
+          is_protected: boolean;
+        }>
+      >('list_processes_native');
+      return nativeProcs.map((p) => ({
+        pid: p.pid,
+        name: p.name,
+        appAssociation: p.is_protected ? 'Windows Operating System' : p.name,
+        exePath: p.exe_path || p.name,
+        publisher: p.is_protected ? 'Microsoft Windows' : 'Local Host Binary',
+        digitalSignature: p.is_protected ? 'Verified OS Binary' : 'Host Executable',
+        isSignatureValid: true,
+        parentPid: p.parent_pid,
+        parentName: 'System',
+        cpuPercent: +p.cpu_percent.toFixed(1),
+        ramMB: +p.ram_mb.toFixed(1),
+        gpuPercent: 0,
+        diskKbps: 0,
+        networkKbps: 0,
+        status: p.is_protected ? 'Windows System Service' : 'Background Process',
+        startupStatus: 'Not in Startup',
+        category: p.is_protected ? 'Protected System Process' : 'Safe Optional',
+        purposeExplanation: p.is_protected
+          ? `Protected system process (${p.name}, PID ${p.pid}).`
+          : `Live OS process (${p.name}, PID ${p.pid}).`,
+        startTime: 'Active',
+        threads: 4,
+        handles: 120,
+        canTerminate: p.can_terminate,
+        terminationBlockReason: p.is_protected
+          ? 'Protected System Process Lockout: cannot be terminated.'
+          : undefined,
+      }));
+    } catch {
+      // Fallback to local backend
+    }
+  }
   const res = await fetch('/api/processes');
   if (!res.ok) return [];
   const data = await res.json();

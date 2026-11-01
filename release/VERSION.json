@@ -9,5 +9,12 @@
   "winfspCompatibility": "WinFsp 2024.1 (v2.0.23075)",
   "configuredRemotes": ["gdrive:", "gdrive2:"],
   "defaultMountPoint": "G:\\",
-  "defaultBackupRoot": "gdrive:Laptop_Full_Backup/C_Drive_User"
+  "defaultBackupRoot": "gdrive:Laptop_Full_Backup/C_Drive_User",
+  "artifacts": {
+    "nsisInstaller": "release/System-Command-Center_2.5.0_x64-setup.exe",
+    "msiInstaller": "release/System-Command-Center_2.5.0_x64_en-US.msi",
+    "portableZip": "release/System-Command-Center_2.5.0_x64-Portable.zip",
+    "windowsExecutable": "release/system-command-center.exe",
+    "webview2Loader": "release/WebView2Loader.dll"
+  }
 }

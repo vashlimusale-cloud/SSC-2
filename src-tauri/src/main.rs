@@ -515,7 +515,7 @@ fn get_live_telemetry() -> NativeTelemetryResult {
     let mut sys = System::new_all();
     sys.refresh_all();
     thread::sleep(Duration::from_millis(120));
-    sys.refresh_cpu();
+    sys.refresh_cpu_all();
 
     let cpus = sys.cpus();
     let cpu_cores = cpus.len().max(1);
@@ -606,7 +606,7 @@ fn list_processes_native() -> Vec<NativeProcessItem> {
         .processes()
         .iter()
         .map(|(pid, proc_info)| {
-            let name = proc_info.name().to_string();
+            let name = proc_info.name().to_string_lossy().to_string();
             let lower = name.to_lowercase();
             let pid_u32 = pid.as_u32();
             let is_protected =

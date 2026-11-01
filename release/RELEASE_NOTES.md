@@ -8,9 +8,13 @@
 5. **SQLite Persistence**: Built-in `node:sqlite` database (`data/scc_persistence.sqlite`) persisting settings, activity history (`terminate_process` strictly non-reversible), command history, and virtual drive mount state.
 
 ## Package Contents (`release/`)
+- `System-Command-Center_2.5.0_x64-setup.exe` — Native Windows 11 x64 NSIS Setup Installer (`1.73 MiB` / `1,813,522 bytes`)
+- `System-Command-Center_2.5.0_x64_en-US.msi` — Native Windows 11 x64 MSI Installer Database (`1.91 MiB` / `2,000,384 bytes`)
+- `System-Command-Center_2.5.0_x64-Portable.zip` — Portable Windows x64 ZIP package (`1.83 MiB` / `1,923,466 bytes`)
+- `system-command-center.exe` — Native Tauri 2 PE32+ x86-64 GUI Windows Executable (`3.60 MiB` / `3,771,904 bytes`)
+- `WebView2Loader.dll` — Microsoft Edge WebView2 x64 Loader DLL (`157.56 KiB` / `161,344 bytes`)
 - `Install-System-Command-Center-Windows.ps1` — Automated Windows 11 setup & `G:` mount wizard
-- `Launch-System-Command-Center.bat` — Instant desktop app window launcher (`msedge --app=http://localhost:3000`)
+- `Launch-System-Command-Center.bat` — Instant desktop app window launcher
 - `VERSION.json` — Release version & environment manifest
-- `SHA256SUMS.txt` — Cryptographic SHA-256 checksums of release artifacts and production bundles
-- `../dist/` — Pre-compiled production frontend bundle
-- `../src-tauri/` — Native Tauri 2 + Rust Windows desktop source (`cargo build --release` / `npx tauri build`)
+- `SHA256SUMS.txt` — Cryptographic SHA-256 checksums of all Windows release installers and binaries
+
