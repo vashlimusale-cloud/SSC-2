@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "System Command Center",
+  "short_name": "CommandCenter",
+  "description": "Unified Windows 11 Desktop System Intelligence and Cloud Storage Management Application with rclone Google Drive integration.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#161922",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

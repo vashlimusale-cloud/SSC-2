@@ -1,0 +1,7 @@
+{
+  "name": "System Command Center",
+  "description": "Unified Windows 11 Desktop System Intelligence and Cloud Storage Management Application with rclone Google Drive integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

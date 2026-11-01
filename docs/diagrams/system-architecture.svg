@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 540" width="1000" height="540">
+  <rect width="1000" height="540" fill="#09090B" rx="16" />
+  <text x="40" y="45" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="20" font-weight="bold">System Command Center — Unified Desktop Architecture</text>
+  <text x="40" y="68" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="13">React 19 + TypeScript + Tailwind CSS v4 + Tauri 2 (Rust) + Node/SQLite + rclone v1.75.1 + WinFsp</text>
+
+  <!-- UI Layer -->
+  <rect x="40" y="95" width="920" height="115" rx="12" fill="#171619" stroke="#A855F7" stroke-width="1.5" />
+  <text x="65" y="125" fill="#A855F7" font-family="Inter, sans-serif" font-size="14" font-weight="bold">PRESENTATION LAYER (React 19 + Tailwind CSS v4 + Motion — Neo's Noir UI)</text>
+  <rect x="65" y="140" width="165" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="80" y="168" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">Home Bento Dashboard</text>
+  <rect x="245" y="140" width="165" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="260" y="168" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">Process &amp; Service Engine</text>
+  <rect x="425" y="140" width="165" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="440" y="168" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">G: Virtual Drive Manager</text>
+  <rect x="605" y="140" width="165" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="620" y="168" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">Local Command Center</text>
+  <rect x="785" y="140" width="150" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="800" y="168" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">Audit &amp; Settings</text>
+
+  <!-- Core Intelligence Layer -->
+  <rect x="40" y="235" width="445" height="135" rx="12" fill="#171619" stroke="#10B981" stroke-width="1.5" />
+  <text x="65" y="265" fill="#10B981" font-family="Inter, sans-serif" font-size="14" font-weight="bold">TAURI 2 / RUST &amp; NODE IPC BRIDGE</text>
+  <text x="65" y="292" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• Process Risk Classifier (Protected / Review / Optional)</text>
+  <text x="65" y="314" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• Non-Destructive Command Validator &amp; Secret Redactor</text>
+  <text x="65" y="336" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• Global Shortcut Listener (Ctrl + Shift + Space)</text>
+  <text x="65" y="356" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• Reversibility Enforcer (terminate_process = non-reversible)</text>
+
+  <!-- Persistence Layer -->
+  <rect x="515" y="235" width="445" height="135" rx="12" fill="#171619" stroke="#38BDF8" stroke-width="1.5" />
+  <text x="540" y="265" fill="#38BDF8" font-family="Inter, sans-serif" font-size="14" font-weight="bold">SQLITE PERSISTENCE LAYER (scc_persistence.sqlite)</text>
+  <text x="540" y="292" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• platform_settings (Notifications, Telemetry, Mount Prefs)</text>
+  <text x="540" y="314" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• activity_history (Immutable Audit Log &amp; Undo State)</text>
+  <text x="540" y="336" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• command_history (Exit Code, Duration, Redacted Stdout)</text>
+  <text x="540" y="356" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• mount_history (G: Drive Letter, Remote, Root Folder)</text>
+
+  <!-- OS & Cloud Integration Layer -->
+  <rect x="40" y="395" width="920" height="115" rx="12" fill="#171619" stroke="#F59E0B" stroke-width="1.5" />
+  <text x="65" y="425" fill="#F59E0B" font-family="Inter, sans-serif" font-size="14" font-weight="bold">WINDOWS 11 OS &amp; RCLONE CLOUD SUBSYSTEM</text>
+  <rect x="65" y="440" width="275" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="80" y="468" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">Windows 11 APIs (Tasklist / WMI / Services)</text>
+  <rect x="360" y="440" width="280" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="375" y="468" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">rclone v1.75.1 (gdrive: &amp; gdrive2: 5 TiB)</text>
+  <rect x="660" y="440" width="275" height="50" rx="8" fill="#1D1A20" stroke="#27272A" />
+  <text x="675" y="468" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="12">WinFsp 2024.1 Virtual Drive (G:\ Mount)</text>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 340" width="1000" height="340">
+  <rect width="1000" height="340" fill="#09090B" rx="16" />
+  <text x="40" y="45" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="20" font-weight="bold">Controlled Local Command Execution Workflow</text>
+  <text x="40" y="68" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="13">Pre-execution risk classification, destructive command blocking, approval gate, and secret redaction</text>
+
+  <rect x="40" y="105" width="210" height="185" rx="12" fill="#171619" stroke="#A855F7" stroke-width="1.5" />
+  <text x="60" y="135" fill="#A855F7" font-family="Inter, sans-serif" font-size="13" font-weight="bold">1. INPUT &amp; PARSER</text>
+  <text x="60" y="165" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• User / Preset Command</text>
+  <text x="60" y="187" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Working Dir Validation</text>
+  <text x="60" y="209" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Argument Tokenization</text>
+
+  <rect x="280" y="105" width="220" height="185" rx="12" fill="#171619" stroke="#EF4444" stroke-width="1.5" />
+  <text x="300" y="135" fill="#EF4444" font-family="Inter, sans-serif" font-size="13" font-weight="bold">2. SAFETY GATE</text>
+  <text x="300" y="165" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• BLOCKED: del /s, format,</text>
+  <text x="300" y="185" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">  rclone sync, rclone purge</text>
+  <text x="300" y="209" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• ADMIN GATE: sfc, netsh,</text>
+  <text x="300" y="229" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">  sc config, taskkill</text>
+  <text x="300" y="253" fill="#10B981" font-family="Inter, sans-serif" font-size="11">• SAFE: rclone about, version</text>
+
+  <rect x="530" y="105" width="205" height="185" rx="12" fill="#171619" stroke="#38BDF8" stroke-width="1.5" />
+  <text x="550" y="135" fill="#38BDF8" font-family="Inter, sans-serif" font-size="13" font-weight="bold">3. ASYNC EXECUTION</text>
+  <text x="550" y="165" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Non-blocking spawn</text>
+  <text x="550" y="187" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• 15s Timeout Guard</text>
+  <text x="550" y="209" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Capture stdout / stderr</text>
+  <text x="550" y="231" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Measure duration (ms)</text>
+
+  <rect x="765" y="105" width="195" height="185" rx="12" fill="#171619" stroke="#10B981" stroke-width="1.5" />
+  <text x="785" y="135" fill="#10B981" font-family="Inter, sans-serif" font-size="13" font-weight="bold">4. REDACT &amp; LOG</text>
+  <text x="785" y="165" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Strip OAuth / Bearer</text>
+  <text x="785" y="187" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Redact client_secret</text>
+  <text x="785" y="209" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Save to SQLite DB</text>
+  <text x="785" y="231" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="11">• Append Activity Audit</text>
+</svg>

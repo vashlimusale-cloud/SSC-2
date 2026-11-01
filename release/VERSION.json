@@ -1,0 +1,13 @@
+{
+  "name": "system-command-center-unified",
+  "productName": "System Command Center",
+  "version": "2.5.0",
+  "codename": "Neo's Noir",
+  "releaseDate": "2026-11-01",
+  "targetPlatform": "Windows 11 x64 (WebView2 / Tauri 2 + Node v22 SQLite)",
+  "rcloneCompatibility": "v1.75.1 (windows/amd64)",
+  "winfspCompatibility": "WinFsp 2024.1 (v2.0.23075)",
+  "configuredRemotes": ["gdrive:", "gdrive2:"],
+  "defaultMountPoint": "G:\\",
+  "defaultBackupRoot": "gdrive:Laptop_Full_Backup/C_Drive_User"
+}

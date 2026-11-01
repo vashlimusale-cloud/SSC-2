@@ -1,0 +1,1052 @@
+# FINAL MASTER EXECUTION PROMPT
+# SYSTEM COMMAND CENTER — COMPLETE PRODUCT DEVELOPMENT, UNIFIED IMPLEMENTATION, GITHUB REPOSITORY, WINDOWS RELEASE & DOCUMENTATION DELIVERY
+
+## YOUR ROLE
+
+Act as a complete senior engineering and product team:
+
+- Principal Software Architect
+- Senior Windows Desktop Application Developer
+- Tauri 2 + Rust Engineer
+- React + TypeScript Engineer
+- Windows System Programming Specialist
+- Google Drive and rclone Integration Engineer
+- UI/UX Designer
+- Cybersecurity Engineer
+- QA and Automation Engineer
+- GitHub Repository Maintainer
+- Technical Documentation Writer
+
+You have my authorization to use the GitHub access already provided to you.
+
+I am assigning you responsibility for completing my entire System Command Center product.
+
+**Do not just create a plan, prototype, UI mockup or partial implementation. Execute the complete project, test it, fix the problems, and deliver the final usable Windows application.**
+
+I am providing a reference UI screenshot. Treat it as the primary visual design reference.
+
+I have NOT submitted the previous development prompts. Everything required is consolidated in this single instruction.
+
+---
+
+# 1. THE ACTUAL PRODUCT GOAL
+
+Build one unified Windows 11 desktop application called:
+
+**SYSTEM COMMAND CENTER**
+
+Tagline:
+
+**Unified Windows System Intelligence & Cloud Storage Management**
+
+The application has THREE primary responsibilities.
+
+### A. Windows System Intelligence
+
+Understand, monitor and safely manage the actual Windows computer.
+
+### B. Google Drive Virtual Storage
+
+Make Google Drive accessible like a normal Windows virtual drive and automate cloud file access, transfers, reconnection and monitoring.
+
+### C. Local System Command Execution
+
+Provide a controlled local execution layer for tasks that AI coding tools, restricted sandboxes or browser environments cannot perform directly on Windows.
+
+These three responsibilities must work together inside one polished application.
+
+Do not turn this into an unrelated PC cleaner or generic dashboard.
+
+---
+
+# 2. INSPECT AND UNIFY ALL EXISTING PROJECT WORK
+
+Before development, investigate the available existing project sources.
+
+Known existing implementation:
+
+**Project 1 — Existing System Command Center**
+- Windows 11 desktop application.
+- Tauri 2.
+- React.
+- TypeScript.
+- Rust.
+- SQLite.
+- Existing system process management.
+- Existing startup management.
+- Existing rclone integration.
+- Existing Google Drive configuration.
+- Existing system monitoring.
+- Existing installer/build work.
+
+**Project 2 — Google AI Studio implementation**
+- React 19.
+- TypeScript.
+- Tailwind CSS v4.
+- Motion.
+- Lucide icons.
+- Express backend.
+- Node.js and rclone CLI bridge.
+- System Intelligence UI.
+- Storage Intelligence UI.
+- Process and service components.
+- Dashboard and settings components.
+- PWA-oriented structure.
+- Unit tests.
+
+The Google AI Studio implementation may be available through an accessible workspace, GitHub repository or provided source files.
+
+Inspect all accessible sources.
+
+If the second project is not accessible yet, do not fabricate its contents or stop all development. Continue with the available project and clearly identify what source access is missing.
+
+### Unification requirements
+
+- Compare both implementations.
+- Identify reusable components.
+- Identify duplicate or conflicting functionality.
+- Preserve the strongest existing backend implementation.
+- Reuse the best UI components.
+- Do not blindly merge incompatible architectures.
+- Do not discard useful existing functionality.
+- Do not create two separate final applications.
+- Deliver ONE unified application.
+
+Use the existing Tauri 2 + Rust foundation for native Windows capabilities wherever practical.
+
+The final application must not become browser-only if that prevents native Windows operations.
+
+---
+
+# 3. CREATE A NEW GITHUB REPOSITORY
+
+I have already provided GitHub access.
+
+Use the authenticated GitHub account.
+
+Create a new repository:
+
+`system-command-center-unified`
+
+Repository description:
+
+`Unified Windows 11 System Intelligence, PC Management, Google Drive Virtual Storage and Local Command Execution Desktop Application.`
+
+Repository requirements:
+
+1. Verify the authenticated GitHub account.
+2. Check whether the requested repository name already exists.
+3. Create the new repository if available.
+4. Do not overwrite or damage existing repositories.
+5. Initialize a clean and professional project structure.
+6. Bring together the finalized implementation.
+7. Add meaningful commits.
+8. Push the source code.
+9. Verify the remote repository.
+10. Verify the latest commit.
+11. Provide the final repository URL.
+
+Use a private repository initially unless I have explicitly authorized public release.
+
+Do not commit:
+- OAuth tokens.
+- Passwords.
+- API keys.
+- Personal credentials.
+- Local secrets.
+- Machine-specific sensitive information.
+- Private backup contents.
+
+Provide a safe `.env.example` where necessary.
+
+If repository creation fails due to authentication or permissions, report the exact issue. Never pretend it succeeded.
+
+---
+
+# 4. UI/UX — REFERENCE IMAGE IS THE DESIGN AUTHORITY
+
+I am providing a screenshot showing the exact design direction I want.
+
+Study it carefully before implementing the frontend.
+
+I want the same visual language and design family, not a generic dashboard.
+
+## Visual style
+
+- Premium Windows 11 desktop interface.
+- Almost-black background.
+- Dark charcoal cards.
+- Subtle purple/violet gradients.
+- Soft glow effects.
+- Rounded rectangular panels.
+- Thin subtle borders.
+- Clean modern typography.
+- Carefully balanced spacing.
+- Premium minimal icons.
+- Smooth animations.
+- High-quality interactive graphs.
+
+Suggested palette:
+
+| Element | Starting color |
+|---|---|
+| Main background | #09090B |
+| Sidebar | #111013 |
+| Primary card | #171619 |
+| Secondary card | #1D1A20 |
+| Purple accent | #A855F7 |
+| Violet accent | #8B5CF6 |
+| Primary text | #F4F4F5 |
+| Secondary text | #A1A1AA |
+| Muted text | #71717A |
+| Success | #10B981 |
+| Warning | #F59E0B |
+| Danger | #EF4444 |
+
+Refine these values by visually comparing the implementation with the supplied screenshot.
+
+## Main layout
+
+Recreate the screenshot's overall composition:
+
+### Sidebar
+- Application logo.
+- Home.
+- My PC.
+- Optimize.
+- Performance.
+- Network.
+- Storage.
+- Tools.
+- Settings.
+- Help and Support.
+- Theme controls.
+- Expand/collapse functionality.
+
+### Top bar
+- Current page.
+- Device name.
+- Profile area.
+- Notification/status indicators.
+- Contextual tooltips.
+
+### Home dashboard cards
+- Welcome / PC overview.
+- Processor.
+- RAM.
+- Storage.
+- Video Card / GPU.
+- Network.
+- Performance Analyzer.
+- Optimization.
+- Platform Settings.
+- Health Center.
+- Support.
+
+### Design details
+- Circular hardware temperature indicators.
+- Utilization progress bars.
+- Network performance graph.
+- Small performance charts.
+- Clear status indicators.
+- Consistent icon sizing.
+- Hover and active states.
+- Proper spacing and alignment.
+- Responsive desktop layout.
+
+Do not use random values or static demonstration values for live hardware cards.
+
+If a metric is unavailable, show that honestly.
+
+The screenshot is the visual reference. Reproduce its design language, proportions and component hierarchy as closely as practical while using our own product branding.
+
+---
+
+# 5. COMPLETE APPLICATION NAVIGATION
+
+Every navigation item must lead to a real functional page.
+
+Required pages:
+
+1. Home Dashboard.
+2. My PC.
+3. Processes.
+4. Startup Manager.
+5. Windows Services.
+6. Performance Monitor.
+7. Optimize.
+8. Network.
+9. Storage.
+10. Google Drive.
+11. Transfers.
+12. Tools.
+13. Command Center.
+14. Activity History.
+15. Settings.
+16. Help and Documentation.
+
+All pages must have:
+- Functional navigation.
+- Real data where applicable.
+- Search and filtering where appropriate.
+- Loading indicators.
+- Error handling.
+- Empty states.
+- Clear status messages.
+- Working buttons.
+- Persistent settings where required.
+
+Do not leave decorative or non-functional controls.
+
+---
+
+# 6. WINDOWS SYSTEM INTELLIGENCE
+
+Use real Windows APIs or reliable native integrations through Rust.
+
+Implement:
+
+### Process monitoring
+- Process name.
+- PID.
+- Executable path.
+- Publisher.
+- Authenticode signature.
+- Parent PID and process tree.
+- CPU utilization.
+- RAM working set.
+- Foreground/background status.
+- Process details.
+- Available disk and network activity.
+
+### Risk classification
+
+Protected System Process:
+- Kernel/session-critical processes.
+- Essential Windows services.
+- Critical security components.
+
+Review Required:
+- Unsigned executables.
+- Scripts.
+- Temporary-directory executables.
+- Unknown publishers.
+
+Safe Optional:
+- Identified non-critical user applications.
+
+A digital signature alone does not prove that a process is safe.
+
+### Process management
+- Inspect.
+- Terminate with confirmation.
+- Explain risks before termination.
+- Protect critical Windows processes.
+- Log every operation.
+
+Never automatically kill processes because of high RAM consumption.
+
+### Startup management
+Inspect:
+- Registry Run entries.
+- Startup folders.
+- Scheduled Tasks.
+- Other supported startup mechanisms.
+
+Provide:
+- Enable.
+- Disable.
+- Restore.
+- Publisher/path details.
+- Startup type.
+- Risk explanation.
+
+### Windows services
+- Service name.
+- Display name.
+- Running/stopped state.
+- Startup type.
+- Executable path.
+- Dependencies.
+- Safe inspection.
+
+Require explicit confirmation before changing services.
+
+### Hardware telemetry
+- CPU model and utilization.
+- CPU temperature where supported.
+- RAM total/used/free.
+- GPU model and utilization where supported.
+- GPU temperature and VRAM where supported.
+- Disk activity.
+- Network upload/download speed.
+
+Do not confuse GPU hardware detection with per-process GPU utilization.
+
+---
+
+# 7. PERFORMANCE ANALYZER AND OPTIMIZATION
+
+Create a practical performance analysis center.
+
+Required:
+- Real-time resource monitoring.
+- Time-series graphs.
+- 1m, 5m, 15m and 30m time ranges.
+- Interactive graph hover values.
+- CPU/RAM/GPU/Disk/Network breakdown.
+- High resource usage identification.
+- Explanation of resource-heavy processes.
+- Optimization suggestions.
+- Before/after measurement where possible.
+
+Every optimization must explain:
+- What it changes.
+- Why it is suggested.
+- Potential risks.
+- Whether administrator permissions are required.
+
+Require confirmation before executing system changes.
+
+Never perform automatic destructive cleanup.
+
+---
+
+# 8. GOOGLE DRIVE VIRTUAL DRIVE — PRIMARY FEATURE
+
+This is one of the most important requirements.
+
+Existing environment:
+
+- Windows 11.
+- rclone 1.75.1.
+- `gdrive:`
+- `gdrive2:`
+- Existing mounted `G:` drive.
+- Existing remote folder: `Laptop_Full_Backup/C_Drive_User`.
+
+Previously observed remote information:
+
+- Both remotes report 5 TiB total capacity.
+- Both report 22.367 GiB used.
+- Both report 4.961 TiB free.
+- Existing backup folder contains 1,063 objects.
+- Existing backup size is approximately 2.543 GiB.
+
+Do not assume the two remotes represent separate Google accounts or 10 TB combined storage.
+
+Investigate the existing configuration safely.
+
+## Required Google Drive functionality
+
+### Virtual drive
+- Detect rclone.
+- Detect configured remotes.
+- Mount Google Drive as an actual Windows drive.
+- Allow configurable mount letter.
+- Allow remote folder selection.
+- Mount and unmount controls.
+- Automatic mounting at Windows startup.
+- Reconnect after network interruption.
+- Detect mount failures.
+- Display current mount status.
+- Provide access through Windows File Explorer.
+
+The virtual drive must genuinely work in Windows File Explorer. A dashboard card is not enough.
+
+### Automatic transfer
+Implement:
+- Manual upload/download.
+- Scheduled transfer.
+- Optional file-change-based transfer.
+- Persistent transfer queue.
+- Resume after interrupted transfers.
+- Retry failed transfers.
+- Progress percentage.
+- Transfer speed.
+- Estimated remaining time where reliable.
+- File counts.
+- Error details.
+- Transfer history.
+
+### File management
+- Browse remote folders.
+- Inspect files.
+- Upload.
+- Download.
+- Create folders.
+- Rename where safely supported.
+- Detect conflicts.
+- Show file metadata.
+- Identify duplicate files.
+- Support safe backup verification.
+
+### Transfer safety
+Use non-destructive operations.
+
+For initial backup, prefer `rclone copy`.
+
+Never use `rclone sync` or `rclone move` as an automatic default.
+
+Never delete local or cloud data automatically.
+
+Never overwrite existing files without a defined safe conflict policy.
+
+Do not expose OAuth tokens or secrets in logs or UI.
+
+Use resumable operations and reliable transfer logging.
+
+### Mount technology
+Investigate the correct Windows rclone mount requirements, including WinFsp if required.
+
+Detect missing dependencies.
+
+Explain installation requirements.
+
+Do not silently claim that a virtual drive is mounted when only a remote connection has been detected.
+
+---
+
+# 9. LOCAL WINDOWS COMMAND EXECUTION ENGINE
+
+This is the second major product requirement.
+
+Build a controlled local execution layer.
+
+It should allow approved tasks to run on the actual Windows computer when a sandbox or browser environment cannot perform them.
+
+Features:
+- Command input.
+- Command preview.
+- Execution approval.
+- Live stdout/stderr.
+- Exit code.
+- Running/completed/failed status.
+- Execution duration.
+- Cancellation.
+- Command history.
+- Logs.
+- Safe working-directory handling.
+
+### Security requirements
+
+- No silent execution of destructive commands.
+- Require approval for sensitive operations.
+- Clearly identify administrator-level actions.
+- Validate executable paths and arguments.
+- Prevent accidental command injection.
+- Do not execute commands received from untrusted remote content automatically.
+- Protect credentials and secrets.
+- Do not expose unrestricted remote command execution.
+
+The application must explain exactly what a command will do before sensitive execution.
+
+Provide a usable local command interface inside the application.
+
+---
+
+# 10. GLOBAL QUICK COMMAND HUD
+
+Shortcut:
+
+`Ctrl + Shift + Space`
+
+It must work globally while the application is running.
+
+Overlay functionality:
+- Search applications.
+- Search processes.
+- Search tools.
+- Search commands.
+- Keyboard navigation.
+- Arrow keys to select.
+- Enter to inspect or launch.
+- Escape to close.
+
+Do not implement a shortcut that works only when a specific page has focus.
+
+---
+
+# 11. PLATFORM SETTINGS AND PERSISTENCE
+
+Implement real settings:
+
+- Start with Windows.
+- Automatic virtual-drive mount.
+- Default mount location.
+- Default remote.
+- Automatic reconnect.
+- Scheduled transfer settings.
+- Monitoring interval.
+- Real-time monitoring toggle.
+- Performance logging toggle.
+- Notifications.
+- Theme.
+- Default landing page.
+- Update preferences where supported.
+
+Settings must persist after application restart.
+
+Do not create fake toggles.
+
+---
+
+# 12. DATABASE AND ACTIVITY HISTORY
+
+Use SQLite for persistent application data where appropriate.
+
+Store:
+- Settings.
+- Transfer queue.
+- Transfer history.
+- Mount history.
+- Activity history.
+- Startup configuration changes.
+- Command execution history.
+- Error logs.
+
+Protect sensitive information.
+
+Implement genuine restore functionality only for operations that can actually be reversed.
+
+Do not call process termination reversible.
+
+---
+
+# 13. SECURITY AND DATA PROTECTION
+
+This application manages real system resources and personal files.
+
+Implement:
+- Permission checks.
+- Input validation.
+- Safe process controls.
+- Protected system operations.
+- Credential protection.
+- Secret redaction.
+- Safe file operations.
+- Clear confirmation dialogs.
+- Detailed error handling.
+
+Never:
+- Delete user files automatically.
+- Delete cloud files automatically.
+- Disable Windows security services automatically.
+- Run privileged commands silently.
+- Claim a backup is verified without verification.
+- Claim a file can be recovered without an actual recovery mechanism.
+
+---
+
+# 14. TESTING — ACTUAL WINDOWS TESTING REQUIRED
+
+Do not stop after writing code.
+
+Test the real running application.
+
+### UI tests
+- All pages open.
+- All navigation works.
+- All buttons work.
+- Settings persist.
+- Search works.
+- Graphs display actual data.
+- Errors are visible and understandable.
+- Layout matches the reference screenshot.
+
+### System tests
+- Process enumeration.
+- Process detail inspection.
+- Signature verification.
+- Protected process guard.
+- Startup enumeration.
+- Startup restore.
+- Service inspection.
+- Command execution.
+- Permission checks.
+- Activity history.
+
+### Google Drive tests
+- rclone detection.
+- Remote detection.
+- Virtual-drive mount.
+- File Explorer access.
+- Upload.
+- Download.
+- Interrupted transfer.
+- Resume.
+- Reconnect.
+- Unmount.
+- Restart behavior.
+- Conflict handling.
+
+### Performance tests
+Check:
+- Idle CPU usage.
+- Idle RAM usage.
+- Monitoring overhead.
+- Application responsiveness.
+- Long-running stability.
+
+Use actual test evidence.
+
+Do not invent results.
+
+---
+
+# 15. VISUAL QUALITY ASSURANCE
+
+Compare the final running application with my supplied reference image.
+
+Inspect:
+- Background color.
+- Card colors.
+- Sidebar proportions.
+- Layout.
+- Typography.
+- Icon consistency.
+- Card radius.
+- Graph appearance.
+- Gauge appearance.
+- Spacing.
+- Alignment.
+- Hover states.
+- Animation quality.
+
+Capture screenshots of the actual running application.
+
+Fix obvious visual mismatches.
+
+The result should look like a polished commercial Windows desktop application.
+
+---
+
+# 16. COMPLETE DOCUMENTATION PACKAGE
+
+This is mandatory.
+
+After development and testing, create a professional documentation directory:
+
+`docs/`
+
+Include:
+
+### A. PROJECT_OVERVIEW.md
+- Product purpose.
+- Main goals.
+- Features.
+- Architecture.
+- Supported platforms.
+- Current limitations.
+
+### B. INSTALLATION_GUIDE.md
+- Prerequisites.
+- Installation.
+- Required Windows dependencies.
+- rclone setup.
+- Google Drive authentication.
+- Virtual drive setup.
+- First launch.
+- Troubleshooting.
+
+### C. USER_MANUAL.md
+Explain how to use every page and feature.
+
+Include:
+- Dashboard.
+- Process manager.
+- Startup manager.
+- Services.
+- Performance.
+- Optimization.
+- Network.
+- Storage.
+- Google Drive.
+- Transfers.
+- Command Center.
+- Settings.
+- Activity history.
+
+### D. GOOGLE_DRIVE_GUIDE.md
+Explain:
+- Connecting Google Drive.
+- Configuring remotes.
+- Mounting.
+- Unmounting.
+- Automatic mount.
+- Uploading.
+- Downloading.
+- Scheduling.
+- Resuming transfers.
+- Handling conflicts.
+- Backup verification.
+- Common errors.
+
+### E. COMMAND_EXECUTION_GUIDE.md
+Explain:
+- How to enter commands.
+- How to inspect commands.
+- How to approve commands.
+- How to cancel execution.
+- How to read output.
+- Permission levels.
+- Safety restrictions.
+
+### F. ARCHITECTURE.md
+Include:
+- Frontend architecture.
+- Rust/native backend.
+- Database structure.
+- System telemetry.
+- rclone integration.
+- Command execution architecture.
+- Data flow.
+
+### G. TROUBLESHOOTING.md
+Include common problems and practical solutions.
+
+### H. SECURITY.md
+Explain permissions, credentials, secret protection, and safety boundaries.
+
+### I. TEST_REPORT.md
+Include actual test results with PASS/PARTIAL/FAIL.
+
+### J. CHANGELOG.md
+Document completed changes.
+
+---
+
+# 17. VISUAL DOCUMENTATION AND SCREENSHOTS
+
+Create a professional screenshots directory:
+
+`docs/screenshots/`
+
+Capture genuine screenshots from the actual running application.
+
+Include:
+- Home dashboard.
+- My PC.
+- Process manager.
+- Performance graphs.
+- Optimization.
+- Network.
+- Storage.
+- Google Drive.
+- Transfer manager.
+- Command Center.
+- Settings.
+- Activity history.
+
+Do not use mockup images as proof of implementation.
+
+Create architecture diagrams and workflow diagrams where useful.
+
+Save these under:
+
+`docs/diagrams/`
+
+Include:
+- Overall system architecture.
+- Google Drive mount and transfer workflow.
+- Local command execution workflow.
+- Application data flow.
+
+If screen recording is supported, record short demonstrations of:
+1. Application launch and dashboard.
+2. Google Drive mounting and Explorer access.
+3. File transfer and resume.
+4. Local command execution.
+
+Store recordings under:
+
+`docs/demos/`
+
+If a recording cannot be created, document that limitation honestly.
+
+---
+
+# 18. FINAL RELEASE PACKAGE
+
+Create a release directory:
+
+`release/`
+
+Include:
+- Final Windows installer.
+- Standalone executable if supported.
+- Release notes.
+- Version information.
+- Installation instructions.
+- Checksums for release artifacts.
+
+Also create a complete ZIP package:
+
+`System-Command-Center-Full-Release.zip`
+
+The ZIP must contain:
+- Final source code or an appropriate source archive.
+- Documentation.
+- Screenshots.
+- Diagrams.
+- Test report.
+- Installation guide.
+- Release notes.
+
+Do not include OAuth credentials, private data, personal backup files, node_modules or unnecessary build caches.
+
+Keep the GitHub repository as the canonical source of code.
+
+---
+
+# 19. README — HOW TO USE THE COMPLETE PRODUCT
+
+Create a clear professional README.md.
+
+It must explain:
+
+- What the application does.
+- Main features.
+- Screenshots.
+- System requirements.
+- Installation.
+- First-time setup.
+- Google Drive connection.
+- Virtual drive mounting.
+- Automatic transfer setup.
+- Local command execution.
+- Keyboard shortcuts.
+- Permissions.
+- Troubleshooting.
+- Known limitations.
+- Development instructions.
+- Build instructions.
+
+A new user should be able to install and understand the application without asking me what to do.
+
+---
+
+# 20. FINAL BUILD AND DISTRIBUTION
+
+Build the final Windows application.
+
+Generate:
+- Production frontend build.
+- Rust release build.
+- Windows installer.
+- Executable.
+- Release ZIP.
+
+Verify:
+- Installer launches.
+- Application launches.
+- Core features work.
+- No obvious runtime errors.
+- No missing dependencies without explanation.
+
+Do not confuse a successful compilation with a successful application.
+
+---
+
+# 21. EXECUTION RULES — DO NOT STOP AFTER PLANNING
+
+These rules are mandatory.
+
+1. Start by inspecting the available source projects.
+2. Produce a short internal implementation plan, then execute it.
+3. Reuse working code.
+4. Implement the complete required functionality.
+5. Build and test continuously.
+6. Fix errors discovered during testing.
+7. Complete documentation.
+8. Capture actual screenshots.
+9. Create the release package.
+10. Create and push the new GitHub repository.
+11. Verify final artifacts.
+12. Deliver one consolidated final report.
+
+Do not:
+- Keep generating new prompts.
+- Stop after producing a plan.
+- Ask me to repeat requirements.
+- Create multiple competing applications.
+- Spend time on unrelated features.
+- Replace working code unnecessarily.
+- Present a UI mockup as a completed product.
+- Fabricate tests or screenshots.
+- Claim success for features that were not verified.
+
+Do not ask me to run repeated commands manually if you can safely execute them yourself.
+
+If a genuine external blocker occurs, such as missing authentication, administrator permission, unavailable hardware dependency or required user approval, explain that exact blocker and continue all other independent work.
+
+Never perform destructive operations or access private backup contents beyond the authorized project requirements.
+
+---
+
+# 22. FINAL ACCEPTANCE CRITERIA
+
+The project is complete only when all the following are addressed:
+
+| Requirement | Completion evidence |
+|---|---|
+| New GitHub repository | Verified URL and commit |
+| Unified application | One working application |
+| Reference UI/UX | Actual running screenshots |
+| System intelligence | Real Windows data |
+| Process management | Tested permission-based controls |
+| Performance monitor | Real telemetry |
+| Google Drive integration | Actual remote connection |
+| Virtual drive | Visible in Windows Explorer |
+| Automatic mounting | Restart test |
+| Automatic transfers | Actual transfer test |
+| Transfer recovery | Interruption/resume test |
+| Local command engine | Actual safe execution test |
+| Security | Permission and safety tests |
+| Settings | Persistence test |
+| Documentation | Complete docs directory |
+| Screenshots | Actual application screenshots |
+| Architecture diagrams | Saved diagrams |
+| Test report | Evidence-based results |
+| Windows installer | Verified installer |
+| Release ZIP | Verified archive |
+
+For every feature, mark:
+
+- PASS — implemented and tested.
+- PARTIAL — implemented but incomplete.
+- FAIL — tested and not working.
+- NOT IMPLEMENTED — not present.
+
+Do not hide incomplete features.
+
+---
+
+# 23. FINAL DELIVERY MESSAGE
+
+When everything is finished, give me ONE consolidated delivery report.
+
+Include:
+
+1. GitHub repository URL.
+2. Final project architecture.
+3. Major implemented features.
+4. UI/UX completion summary.
+5. Google Drive virtual drive status.
+6. Automatic transfer status.
+7. Local command execution status.
+8. Test results.
+9. Security findings.
+10. Documentation directory.
+11. Screenshot directory.
+12. Architecture diagrams.
+13. Demo recordings, if available.
+14. Final installer path.
+15. Executable path.
+16. Release ZIP path.
+17. Installation and first-use instructions.
+18. Remaining limitations, if any.
+
+Provide exact paths and verified links. Never invent file paths.
+
+**ULTIMATE OBJECTIVE: Deliver one complete, polished, secure, tested, documented and usable Windows 11 System Command Center, with the reference image's design language, real Windows system intelligence, actual Google Drive virtual-drive automation, and a controlled local command execution engine. Create the new GitHub repository and final release package. Finish the product instead of producing another planning exercise.**

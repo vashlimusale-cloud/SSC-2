@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: #09090b;
+    color: #f4f4f5;
+    font-family: 'Segoe UI', Inter, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom Neo's Noir Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.22);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.45);
+}
+
+/* Neo's Noir / Windows 11 Surfaces (Reference Image Authority) */
+.win-mica {
+  background-color: #111013;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.win-acrylic {
+  background-color: #141318;
+}
+
+.win-card {
+  background-color: #171619;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.65);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.win-card-secondary {
+  background-color: #1d1a20;
+  border: 1px solid rgba(168, 85, 247, 0.14);
+}
+
+.win-card-hover:hover {
+  background-color: #1d1a20;
+  border-color: rgba(168, 85, 247, 0.32);
+  transform: translateY(-1px);
+}
+
+.win-active-nav {
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  position: relative;
+}
+
+/* Windows 11 Fluent Button and Focus Rings */
+.win-btn {
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.win-btn:active {
+  transform: scale(0.98);
+}
+
+.win-focus-ring:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 1px;
+}

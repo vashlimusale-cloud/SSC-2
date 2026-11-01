@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 340" width="1000" height="340">
+  <rect width="1000" height="340" fill="#09090B" rx="16" />
+  <text x="40" y="45" fill="#F4F4F5" font-family="Inter, sans-serif" font-size="20" font-weight="bold">Application Data Flow &amp; State Synchronization</text>
+  <text x="40" y="68" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="13">Unidirectional telemetry loop and persistent SQLite transaction pipeline</text>
+
+  <rect x="40" y="110" width="270" height="175" rx="12" fill="#171619" stroke="#A855F7" stroke-width="1.5" />
+  <text x="65" y="142" fill="#A855F7" font-family="Inter, sans-serif" font-size="13" font-weight="bold">SYSTEM &amp; CLOUD SENSORS</text>
+  <text x="65" y="172" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• CPU / GPU Temp &amp; Load</text>
+  <text x="65" y="196" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• Process &amp; Startup Registry</text>
+  <text x="65" y="220" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• rclone Remote Quota Probe</text>
+  <text x="65" y="244" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• WinFsp G:\ Mount Status</text>
+
+  <rect x="365" y="110" width="270" height="175" rx="12" fill="#171619" stroke="#38BDF8" stroke-width="1.5" />
+  <text x="390" y="142" fill="#38BDF8" font-family="Inter, sans-serif" font-size="13" font-weight="bold">SYSTEM COMMAND CONTEXT</text>
+  <text x="390" y="172" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• React 19 State Store</text>
+  <text x="390" y="196" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• 60-Second Rolling History</text>
+  <text x="390" y="220" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• Reversibility Policy Gate</text>
+  <text x="390" y="244" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• Async REST / Tauri IPC</text>
+
+  <rect x="690" y="110" width="270" height="175" rx="12" fill="#171619" stroke="#10B981" stroke-width="1.5" />
+  <text x="715" y="142" fill="#10B981" font-family="Inter, sans-serif" font-size="13" font-weight="bold">SQLITE STORAGE ENGINE</text>
+  <text x="715" y="172" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• /api/state Hydration</text>
+  <text x="715" y="196" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• /api/settings Persistence</text>
+  <text x="715" y="220" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• /api/activity Audit Trail</text>
+  <text x="715" y="244" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="12">• /api/command/execute Log</text>
+</svg>
