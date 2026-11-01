@@ -57,11 +57,13 @@ export const MyPcView: React.FC = () => {
             <span className="flex items-center gap-1.5 font-semibold text-white">
               <Cpu className="w-4 h-4 text-[#a855f7]" /> Processor
             </span>
-            <span className="font-mono text-[#10b981]">{metrics.cpuTempCelsius}°C</span>
+            <span className="font-mono text-[#10b981]">
+              {metrics.cpuTempCelsius !== null ? `${metrics.cpuTempCelsius}°C` : 'Temp N/A'}
+            </span>
           </div>
           <div className="text-sm font-bold text-white">{metrics.cpuModel}</div>
           <div className="text-[11px] text-[#71717a]">
-            {metrics.cpuCores} Physical Cores • {metrics.cpuFrequencyGhz} GHz Boost
+            {metrics.cpuCores} Cores • {metrics.cpuFrequencyGhz} GHz Clock
           </div>
           <div className="pt-2 flex items-center justify-between text-xs">
             <span className="text-[#a1a1aa]">Current Load</span>
@@ -78,15 +80,22 @@ export const MyPcView: React.FC = () => {
             <span className="flex items-center gap-1.5 font-semibold text-white">
               <Activity className="w-4 h-4 text-sky-400" /> Graphics (GPU)
             </span>
-            <span className="font-mono text-[#10b981]">{metrics.gpuTempCelsius}°C</span>
+            <span className="font-mono text-[#10b981]">
+              {metrics.gpuTempCelsius !== null ? `${metrics.gpuTempCelsius}°C` : 'Temp N/A'}
+            </span>
           </div>
           <div className="text-sm font-bold text-white">{metrics.gpuName}</div>
           <div className="text-[11px] text-[#71717a]">
-            VRAM: {metrics.gpuMemoryUsedGB} GB / {metrics.gpuMemoryTotalGB} GB GDDR6X
+            VRAM:{' '}
+            {metrics.gpuMemoryUsedGB !== null && metrics.gpuMemoryTotalGB !== null
+              ? `${metrics.gpuMemoryUsedGB} GB / ${metrics.gpuMemoryTotalGB} GB`
+              : 'Sensor Unavailable'}
           </div>
           <div className="pt-2 flex items-center justify-between text-xs">
             <span className="text-[#a1a1aa]">3D Engine Load</span>
-            <span className="font-mono font-bold text-white">{metrics.gpuPercent}%</span>
+            <span className="font-mono font-bold text-white">
+              {metrics.gpuPercent !== null ? `${metrics.gpuPercent}%` : 'N/A'}
+            </span>
           </div>
         </FluentCard>
 
@@ -99,7 +108,7 @@ export const MyPcView: React.FC = () => {
             <span className="flex items-center gap-1.5 font-semibold text-white">
               <HardDrive className="w-4 h-4 text-[#10b981]" /> System Memory
             </span>
-            <span className="font-mono text-[#10b981]">Dual-Channel</span>
+            <span className="font-mono text-[#10b981]">Live RAM</span>
           </div>
           <div className="text-sm font-bold text-white">{metrics.ramModel}</div>
           <div className="text-[11px] text-[#71717a]">
@@ -118,13 +127,15 @@ export const MyPcView: React.FC = () => {
         >
           <div className="flex items-center justify-between text-xs text-[#a1a1aa]">
             <span className="flex items-center gap-1.5 font-semibold text-white">
-              <ShieldCheck className="w-4 h-4 text-amber-400" /> Windows 11 OS
+              <ShieldCheck className="w-4 h-4 text-amber-400" /> Host Operating System
             </span>
-            <span className="font-mono text-[#10b981]">23H2</span>
+            <span className="font-mono text-[#10b981]">Active</span>
           </div>
-          <div className="text-sm font-bold text-white">Windows 11 Pro (Build 22631)</div>
+          <div className="text-sm font-bold text-white">
+            {metrics.osPlatform || 'Windows 11 / Host OS'}
+          </div>
           <div className="text-[11px] text-[#71717a]">
-            {processes.length} Monitored Processes • {services.length} Core Services
+            {processes.length} Enumerated Processes • {services.length} Core Services
           </div>
           <div className="pt-2 flex items-center justify-between text-xs">
             <span className="text-[#a1a1aa]">Active Autostarts</span>
@@ -147,10 +158,10 @@ export const MyPcView: React.FC = () => {
               <HardDrive className="w-5 h-5 text-[#a855f7]" />
               <div>
                 <h3 className="text-sm font-bold text-white">
-                  Local Primary Volume (C:\) — {metrics.diskModel}
+                  Local Primary Volume — {metrics.diskModel}
                 </h3>
                 <p className="text-[11px] text-[#71717a]">
-                  NVMe PCIe 4.0 x4 • NTFS • BitLocker Protected
+                  Host Filesystem • Live Capacity Telemetry
                 </p>
               </div>
             </div>
@@ -165,7 +176,7 @@ export const MyPcView: React.FC = () => {
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-[#a1a1aa]">
-                Used: {metrics.diskTotalGB - metrics.diskFreeGB} GB of {metrics.diskTotalGB} GB
+                Used: {(metrics.diskTotalGB - metrics.diskFreeGB).toFixed(1)} GB of {metrics.diskTotalGB} GB
               </span>
               <span className="font-mono font-bold text-white">
                 {metrics.diskFreeGB} GB Free ({100 - metrics.diskUsagePercent}%)
@@ -194,7 +205,8 @@ export const MyPcView: React.FC = () => {
                 </h3>
                 <p className="text-[11px] text-[#71717a]">
                   {mounted?.remoteName}
-                  {mounted?.remoteFolder} • WinFsp Virtual File System
+                  {mounted?.remoteFolder} •{' '}
+                  {mounted?.isMounted ? 'Mounted on OS' : 'Unmounted on host OS'}
                 </p>
               </div>
             </div>
@@ -230,22 +242,30 @@ export const MyPcView: React.FC = () => {
           <div className="p-3 rounded-xl bg-[#09090b] border border-white/[0.06]">
             <div className="text-[#71717a]">CPU Package (Tctl/Tdie)</div>
             <div className="text-base font-bold text-white font-mono mt-0.5">
-              {metrics.cpuTempCelsius}°C (Optimal)
+              {metrics.cpuTempCelsius !== null ? `${metrics.cpuTempCelsius}°C` : 'N/A (No Sensor)'}
             </div>
           </div>
           <div className="p-3 rounded-xl bg-[#09090b] border border-white/[0.06]">
             <div className="text-[#71717a]">GPU Core / Hotspot</div>
             <div className="text-base font-bold text-white font-mono mt-0.5">
-              {metrics.gpuTempCelsius}°C / {metrics.gpuTempCelsius + 7}°C
+              {metrics.gpuTempCelsius !== null
+                ? `${metrics.gpuTempCelsius}°C / ${metrics.gpuTempCelsius + 7}°C`
+                : 'N/A (No Sensor)'}
             </div>
           </div>
           <div className="p-3 rounded-xl bg-[#09090b] border border-white/[0.06]">
-            <div className="text-[#71717a]">NVMe Composite Temp</div>
-            <div className="text-base font-bold text-white font-mono mt-0.5">41°C (Optimal)</div>
+            <div className="text-[#71717a]">Telemetry Source</div>
+            <div className="text-base font-bold text-white font-mono mt-0.5">
+              {metrics.sensorStatus?.telemetrySource === 'tauri-native'
+                ? 'Tauri sysinfo'
+                : 'Host OS Kernel'}
+            </div>
           </div>
           <div className="p-3 rounded-xl bg-[#09090b] border border-white/[0.06]">
-            <div className="text-[#71717a]">Kernel BugChecks (30d)</div>
-            <div className="text-base font-bold text-[#10b981] font-mono mt-0.5">0 Crashes</div>
+            <div className="text-[#71717a]">Kernel Uptime</div>
+            <div className="text-base font-bold text-[#10b981] font-mono mt-0.5">
+              {formatDuration(metrics.uptimeSeconds)}
+            </div>
           </div>
         </div>
       </FluentCard>

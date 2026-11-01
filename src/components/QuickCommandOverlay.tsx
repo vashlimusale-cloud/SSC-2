@@ -211,7 +211,8 @@ export const QuickCommandOverlay: React.FC = () => {
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <Cpu className="w-3 h-3 text-[#a855f7]" />
-                  CPU: <strong className="text-white">{metrics.cpuTotalPercent}%</strong> ({metrics.cpuTempCelsius}°C)
+                  CPU: <strong className="text-white">{metrics.cpuTotalPercent}%</strong> (
+                  {metrics.cpuTempCelsius !== null ? `${metrics.cpuTempCelsius}°C` : 'Temp N/A'})
                 </span>
                 <span className="flex items-center gap-1">
                   <HardDrive className="w-3 h-3 text-sky-400" />
@@ -219,7 +220,7 @@ export const QuickCommandOverlay: React.FC = () => {
                 </span>
                 <span className="flex items-center gap-1">
                   <Cloud className="w-3 h-3 text-[#10b981]" />
-                  GDrive: <strong className="text-[#10b981]">G: Mounted</strong>
+                  GDrive: <strong className="text-[#10b981]">G: Ready</strong>
                 </span>
               </div>
 

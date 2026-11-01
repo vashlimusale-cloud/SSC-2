@@ -29,6 +29,7 @@ export const GoogleDriveView: React.FC = () => {
     restoreCloudFile,
     toggleVirtualDriveMount,
     reconnectVirtualDrive,
+    inspectDriveInExplorer,
     createRemoteFolder,
     platformSettings,
     updatePlatformSettings,
@@ -60,8 +61,8 @@ export const GoogleDriveView: React.FC = () => {
     return !q || item.name.toLowerCase().includes(q) || item.path.toLowerCase().includes(q);
   });
 
-  const handleApplyMountConfig = () => {
-    toggleVirtualDriveMount({
+  const handleApplyMountConfig = async () => {
+    await toggleVirtualDriveMount({
       driveLetter: selectedDriveLetter,
       remoteName: selectedRemote,
       remoteFolder,
@@ -74,6 +75,11 @@ export const GoogleDriveView: React.FC = () => {
     });
   };
 
+  const handleInspectExplorer = async () => {
+    await inspectDriveInExplorer(selectedDriveLetter);
+    setExplorerPreviewOpen(true);
+  };
+
   return (
     <div className="space-y-5 pb-8">
       {/* Header */}
@@ -84,14 +90,20 @@ export const GoogleDriveView: React.FC = () => {
             Google Drive Virtual Storage ({mounted?.driveLetter || 'G:'})
           </h1>
           <p className="text-xs text-[#a1a1aa] mt-0.5">
-            rclone v1.75.1 + WinFsp Virtual File System mount, remote quota audit, and non-destructive cloud browser
+            Native Tauri WinFsp Virtual File System mount controller, OS drive verification &amp; non-destructive cloud browser
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] text-xs font-semibold flex items-center gap-1.5">
+          <span
+            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 ${
+              rcloneStatus.installed
+                ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]'
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+            }`}
+          >
             <CheckCircle2 className="w-3.5 h-3.5" />
-            {rcloneStatus.version} • {rcloneStatus.winfspVersion}
+            rclone: {rcloneStatus.version} • WinFsp: {rcloneStatus.winfspVersion}
           </span>
         </div>
       </div>
@@ -130,7 +142,7 @@ export const GoogleDriveView: React.FC = () => {
                 Windows Virtual Drive Mount Controller (WinFsp)
               </h3>
               <p className="text-[11px] text-[#71717a]">
-                Mount Google Drive directly as a native letter drive in Windows File Explorer
+                Invokes native Tauri <code className="font-mono">mount_gdrive_winfsp</code> &amp; verifies OS volume letter before reporting Mounted
               </p>
             </div>
 
@@ -148,7 +160,7 @@ export const GoogleDriveView: React.FC = () => {
               />
               {mounted?.isMounted
                 ? `Mounted (${mounted.driveLetter}\\ • ${mounted.connectionHealth})`
-                : 'Unmounted'}
+                : `Unmounted (${mounted?.connectionHealth || 'Unmounted'})`}
             </span>
           </div>
 
@@ -193,12 +205,17 @@ export const GoogleDriveView: React.FC = () => {
             </div>
           </div>
 
-          {/* Generated rclone mount command preview */}
-          <div className="p-3 rounded-xl bg-[#09090b] border border-white/[0.06] font-mono text-[11px] text-[#a1a1aa] overflow-x-auto">
-            <div className="text-[10px] uppercase text-[#71717a] mb-1">
-              Executed Native WinFsp Mount Command:
+          {/* Generated rclone mount command preview & live OS verification message */}
+          <div className="p-3 rounded-xl bg-[#09090b] border border-white/[0.06] font-mono text-[11px] text-[#a1a1aa] overflow-x-auto space-y-1.5">
+            <div className="text-[10px] uppercase text-[#71717a]">
+              Native WinFsp Mount Command:
             </div>
-            <code className="text-[#10b981]">{mountCmdPreview.command}</code>
+            <code className="text-[#10b981] block">{mountCmdPreview.command}</code>
+            {mounted?.statusMessage && (
+              <div className="text-[11px] text-amber-300/90 pt-1 border-t border-white/5">
+                OS Verification: {mounted.statusMessage}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -207,7 +224,12 @@ export const GoogleDriveView: React.FC = () => {
               <button
                 onClick={() =>
                   mounted?.isMounted
-                    ? toggleVirtualDriveMount({ forceMountState: false })
+                    ? toggleVirtualDriveMount({
+                        driveLetter: selectedDriveLetter,
+                        remoteName: selectedRemote,
+                        remoteFolder,
+                        forceMountState: false,
+                      })
                     : handleApplyMountConfig()
                 }
                 className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
@@ -230,7 +252,7 @@ export const GoogleDriveView: React.FC = () => {
               </button>
 
               <button
-                onClick={reconnectVirtualDrive}
+                onClick={() => reconnectVirtualDrive()}
                 className="px-3 py-2 rounded-xl bg-[#222026] hover:bg-[#2c2933] border border-white/10 text-xs text-[#a1a1aa] hover:text-white flex items-center gap-1.5 cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -239,7 +261,7 @@ export const GoogleDriveView: React.FC = () => {
             </div>
 
             <button
-              onClick={() => setExplorerPreviewOpen(!explorerPreviewOpen)}
+              onClick={handleInspectExplorer}
               className="px-3.5 py-2 rounded-xl bg-[#a855f7]/20 hover:bg-[#a855f7]/30 border border-[#a855f7]/40 text-xs font-semibold text-purple-200 flex items-center gap-1.5 cursor-pointer"
             >
               <ExternalLink className="w-3.5 h-3.5" />
@@ -291,7 +313,7 @@ export const GoogleDriveView: React.FC = () => {
             <div>
               <div className="font-semibold text-white">Auto-Mount at Windows Logon</div>
               <div className="text-[10px] text-[#71717a]">
-                Reconnects {mounted?.driveLetter || 'G:'} automatically after sleep or network drop
+                Persists configuration separately from verified OS mount state
               </div>
             </div>
             <button
@@ -326,33 +348,39 @@ export const GoogleDriveView: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="text-xs font-bold text-white flex items-center gap-2">
               <HardDrive className="w-4 h-4 text-[#10b981]" />
-              Windows File Explorer Volume Bridge — This PC &gt; Google Drive ({mounted?.driveLetter || 'G:'})
+              OS Volume &amp; Explorer Verification — {mounted?.driveLetter || 'G:'}\
             </div>
             <button
               onClick={() => setExplorerPreviewOpen(false)}
               className="text-xs text-[#a1a1aa] hover:text-white cursor-pointer"
             >
-              Close Preview
+              Close Inspector
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
             <div className="p-3 rounded-xl bg-[#09090b] border border-white/10">
               <div className="text-[#71717a] text-[10px]">Volume Mount Point</div>
               <div className="font-mono font-bold text-white mt-0.5">
-                {mounted?.mountPath || 'G:\\'} ({mounted?.remoteName}
-                {mounted?.remoteFolder})
+                {mounted?.mountPath || 'G:\\'} (Exists: {mounted?.drivePathExists ? 'Yes' : 'No'})
               </div>
             </div>
             <div className="p-3 rounded-xl bg-[#09090b] border border-white/10">
-              <div className="text-[#71717a] text-[10px]">File System Driver</div>
+              <div className="text-[#71717a] text-[10px]">rclone Child Process</div>
               <div className="font-mono font-bold text-[#10b981] mt-0.5">
-                WinFsp.Np (VFS Cache Mode: Full)
+                {mounted?.processAlive ? `Running (PID ${mounted?.pid})` : 'Not Running'}
               </div>
             </div>
             <div className="p-3 rounded-xl bg-[#09090b] border border-white/10">
-              <div className="text-[#71717a] text-[10px]">Explorer Status</div>
+              <div className="text-[#71717a] text-[10px]">Dependencies (rclone / WinFsp)</div>
+              <div className="font-mono font-bold text-white mt-0.5">
+                {rcloneStatus.installed ? 'rclone OK' : 'rclone Missing'} /{' '}
+                {rcloneStatus.winfspInstalled ? 'WinFsp OK' : 'WinFsp Missing'}
+              </div>
+            </div>
+            <div className="p-3 rounded-xl bg-[#09090b] border border-white/10">
+              <div className="text-[#71717a] text-[10px]">Explorer Access Verification</div>
               <div className="font-bold text-white mt-0.5">
-                1,063 Objects Indexed (2.543 GiB)
+                {mounted?.explorerAccessible ? 'Accessible (Read Verified)' : 'Not Mounted on Host'}
               </div>
             </div>
           </div>

@@ -25,6 +25,11 @@ export const CRITICAL_PROTECTED_WINDOWS_BINARIES = new Set([
   'sihost.exe',
 ]);
 
+export function isProtectedSystemProcess(name: string, pid: number): boolean {
+  if (pid === 0 || pid === 4) return true;
+  return CRITICAL_PROTECTED_WINDOWS_BINARIES.has((name || '').trim().toLowerCase());
+}
+
 /**
  * Classifies a Windows process into:
  * - 'Protected System Process'

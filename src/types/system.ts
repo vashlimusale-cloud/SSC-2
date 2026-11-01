@@ -66,9 +66,11 @@ export interface StartupItem {
 
 export interface SystemResourceMetrics {
   deviceName: string;
+  osPlatform?: string;
   cpuModel: string;
   cpuTotalPercent: number;
-  cpuTempCelsius: number;
+  cpuPerCorePercent?: number[];
+  cpuTempCelsius: number | null;
   cpuCores: number;
   cpuFrequencyGhz: number;
   ramModel: string;
@@ -76,13 +78,13 @@ export interface SystemResourceMetrics {
   ramTotalGB: number;
   ramPercent: number;
   gpuName: string;
-  gpuPercent: number;
-  gpuTempCelsius: number;
-  gpuMemoryUsedGB: number;
-  gpuMemoryTotalGB: number;
+  gpuPercent: number | null;
+  gpuTempCelsius: number | null;
+  gpuMemoryUsedGB: number | null;
+  gpuMemoryTotalGB: number | null;
   diskModel: string;
-  diskReadMBps: number;
-  diskWriteMBps: number;
+  diskReadMBps: number | null;
+  diskWriteMBps: number | null;
   diskUsagePercent: number;
   diskTotalGB: number;
   diskFreeGB: number;
@@ -92,7 +94,13 @@ export interface SystemResourceMetrics {
   uptimeSeconds: number;
   processCount: number;
   threadCount: number;
-  handleCount: number;
+  handleCount: number | null;
+  sensorStatus?: {
+    cpuTempAvailable: boolean;
+    gpuTelemetryAvailable: boolean;
+    diskIoRateAvailable: boolean;
+    telemetrySource: 'tauri-native' | 'host-os-kernel';
+  };
 }
 
 export interface OptimizationItem {

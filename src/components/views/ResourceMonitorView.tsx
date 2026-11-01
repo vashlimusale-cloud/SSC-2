@@ -249,7 +249,7 @@ export const ResourceMonitorView: React.FC = () => {
               <Activity className="w-4 h-4 text-purple-400" /> GPU 3D Graphics Engine
             </span>
             <span className="text-lg font-bold font-mono text-purple-400">
-              {metrics.gpuPercent.toFixed(1)}%
+              {metrics.gpuPercent !== null ? `${metrics.gpuPercent.toFixed(1)}%` : 'N/A'}
             </span>
           </div>
 
@@ -265,7 +265,9 @@ export const ResourceMonitorView: React.FC = () => {
             <div>
               <div>Dedicated VRAM:</div>
               <strong className="text-gray-200">
-                {metrics.gpuMemoryUsedGB} / {metrics.gpuMemoryTotalGB} GB
+                {metrics.gpuMemoryUsedGB !== null && metrics.gpuMemoryTotalGB !== null
+                  ? `${metrics.gpuMemoryUsedGB} / ${metrics.gpuMemoryTotalGB} GB`
+                  : 'N/A (No Sensor)'}
               </strong>
             </div>
           </div>
@@ -275,21 +277,25 @@ export const ResourceMonitorView: React.FC = () => {
         <div className="p-4 rounded-xl win-card bg-[#161a24] border border-white/10 space-y-3">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 text-xs font-semibold text-white">
-              <HardDrive className="w-4 h-4 text-emerald-400" /> NVMe SSD Throughput
+              <HardDrive className="w-4 h-4 text-emerald-400" /> Primary Disk Utilization
             </span>
             <span className="text-lg font-bold font-mono text-emerald-400">
-              {metrics.diskWriteMBps} MB/s
+              {metrics.diskWriteMBps !== null
+                ? `${metrics.diskWriteMBps} MB/s`
+                : `${metrics.diskUsagePercent}% Used`}
             </span>
           </div>
 
           <div className="bg-black/40 rounded-lg p-2.5 border border-white/5 pt-3">
-            {renderInteractiveChart('disk', 'Disk I/O', '#34d399', 'diskGrad', 20, ' MB/s')}
+            {renderInteractiveChart('disk', 'Disk Usage', '#34d399', 'diskGrad', 100, '%')}
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-[11px] text-gray-400 pt-1 border-t border-white/5">
             <div>
-              <div>Read Speed:</div>
-              <strong className="text-gray-200">{metrics.diskReadMBps} MB/s</strong>
+              <div>Read Rate:</div>
+              <strong className="text-gray-200">
+                {metrics.diskReadMBps !== null ? `${metrics.diskReadMBps} MB/s` : 'N/A'}
+              </strong>
             </div>
             <div>
               <div>Free Space:</div>
@@ -333,12 +339,14 @@ export const ResourceMonitorView: React.FC = () => {
         <div className="p-4 rounded-xl win-card bg-[#161a24] border border-white/10 space-y-3 flex flex-col justify-between">
           <div>
             <span className="flex items-center gap-2 text-xs font-semibold text-white">
-              <Clock className="w-4 h-4 text-indigo-400" /> Windows 11 Kernel Telemetry
+              <Clock className="w-4 h-4 text-indigo-400" /> Host Kernel Telemetry
             </span>
             <div className="text-2xl font-bold font-mono text-white mt-3">
               {formatDuration(metrics.uptimeSeconds)}
             </div>
-            <div className="text-xs text-gray-400 mt-1">Uptime without kernel faults or bug checks</div>
+            <div className="text-xs text-gray-400 mt-1">
+              {metrics.osPlatform || 'Host OS'} • Live kernel uptime
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-400 pt-2 border-t border-white/5">
@@ -348,7 +356,9 @@ export const ResourceMonitorView: React.FC = () => {
             </div>
             <div>
               <div>Total Handles:</div>
-              <strong className="text-gray-200">{metrics.handleCount}</strong>
+              <strong className="text-gray-200">
+                {metrics.handleCount !== null ? metrics.handleCount : 'N/A'}
+              </strong>
             </div>
           </div>
         </div>

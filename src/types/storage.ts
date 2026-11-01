@@ -35,6 +35,11 @@ export interface RcloneStatus {
     usedGB: number;
     freeGB: number;
     isMounted: boolean;
+    processAlive?: boolean;
+    pid?: number | null;
+    drivePathExists?: boolean;
+    explorerAccessible?: boolean;
+    statusMessage?: string;
     autoMountOnStartup: boolean;
     autoReconnect: boolean;
     connectionHealth: 'Connected' | 'Reconnecting' | 'Unmounted' | 'Mount Error';

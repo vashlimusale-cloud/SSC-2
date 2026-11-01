@@ -14,14 +14,15 @@ import {
 /**
  * Circular Hardware Temperature Gauge matching Reference Screenshot
  */
-const CircularTempGauge: React.FC<{ tempCelsius: number; maxTemp?: number }> = ({
+const CircularTempGauge: React.FC<{ tempCelsius: number | null; maxTemp?: number }> = ({
   tempCelsius,
   maxTemp = 95,
 }) => {
   const radius = 38;
   const circumference = 2 * Math.PI * radius;
-  const clamped = Math.max(20, Math.min(maxTemp, tempCelsius));
-  const fraction = (clamped / maxTemp) * 0.72; // ~260 degree sweep arc
+  const hasTemp = tempCelsius !== null && !Number.isNaN(tempCelsius);
+  const clamped = hasTemp ? Math.max(20, Math.min(maxTemp, tempCelsius)) : 20;
+  const fraction = hasTemp ? (clamped / maxTemp) * 0.72 : 0.15;
   const strokeDashoffset = circumference * (1 - fraction);
 
   return (
@@ -59,8 +60,12 @@ const CircularTempGauge: React.FC<{ tempCelsius: number; maxTemp?: number }> = (
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-xl font-bold text-white leading-none">{tempCelsius}°</span>
-        <span className="text-[10px] text-[#71717a] mt-0.5">Celsius</span>
+        <span className="text-xl font-bold text-white leading-none">
+          {hasTemp ? `${tempCelsius}°` : 'N/A'}
+        </span>
+        <span className="text-[10px] text-[#71717a] mt-0.5">
+          {hasTemp ? 'Celsius' : 'No Sensor'}
+        </span>
       </div>
     </div>
   );
@@ -134,7 +139,7 @@ export const OverviewView: React.FC = () => {
             </h2>
             {platformSettings.tooltipMode && (
               <p className="text-[11px] text-[#71717a] mt-1 max-w-[230px]">
-                Live summary of Windows 11 kernel health, temperatures, and mounted Google Drive G:.
+                Live summary of host kernel health, temperatures, and Google Drive G: mount verification.
               </p>
             )}
           </div>
@@ -145,7 +150,13 @@ export const OverviewView: React.FC = () => {
               <div>
                 <div className="text-xs font-bold text-white leading-tight">Temperatures</div>
                 <div className="text-[11px] text-[#71717a]">
-                  Optimal ({metrics.cpuTempCelsius}°C CPU / {metrics.gpuTempCelsius}°C GPU)
+                  {metrics.cpuTempCelsius !== null
+                    ? `${metrics.cpuTempCelsius}°C CPU`
+                    : 'CPU Sensor N/A'}{' '}
+                  /{' '}
+                  {metrics.gpuTempCelsius !== null
+                    ? `${metrics.gpuTempCelsius}°C GPU`
+                    : 'GPU Sensor N/A'}
                 </div>
               </div>
             </div>
@@ -155,21 +166,27 @@ export const OverviewView: React.FC = () => {
               <div>
                 <div className="text-xs font-bold text-white leading-tight">Health</div>
                 <div className="text-[11px] text-[#71717a]">
-                  Recently scanned • {processes.length} processes monitored
+                  Live kernel poll • {processes.length} processes enumerated
                 </div>
               </div>
             </div>
 
             <div className="flex items-start gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] mt-1 shrink-0 shadow-[0_0_8px_#10b981]" />
+              <span
+                className={`w-2.5 h-2.5 rounded-full mt-1 shrink-0 ${
+                  rcloneStatus.mountedGDrive?.isMounted
+                    ? 'bg-[#10b981] shadow-[0_0_8px_#10b981]'
+                    : 'bg-amber-400 shadow-[0_0_8px_#f59e0b]'
+                }`}
+              />
               <div>
                 <div className="text-xs font-bold text-white leading-tight">
                   Virtual Drive ({rcloneStatus.mountedGDrive?.driveLetter || 'G:'})
                 </div>
                 <div className="text-[11px] text-[#71717a]">
                   {rcloneStatus.mountedGDrive?.isMounted
-                    ? 'Mounted via WinFsp (4.961 TiB Free)'
-                    : 'Unmounted — Click Google Drive to mount'}
+                    ? 'Verified Mounted on OS via WinFsp'
+                    : 'Unmounted on host OS — Click Google Drive to verify/mount'}
                 </div>
               </div>
             </div>
@@ -186,7 +203,7 @@ export const OverviewView: React.FC = () => {
                 <div className="text-xs font-bold text-white leading-tight">Process Audit</div>
                 <div className="text-[11px] text-[#71717a]">
                   {reviewCount > 0
-                    ? `${reviewCount} unsigned processes need review`
+                    ? `${reviewCount} processes flagged for review`
                     : 'All running processes verified'}
                 </div>
               </div>
@@ -255,8 +272,16 @@ export const OverviewView: React.FC = () => {
                 <h3 className="text-lg font-bold text-white">Video Card</h3>
                 <div className="text-[11px] text-[#71717a]">{metrics.gpuName}</div>
                 <div className="flex items-center gap-2 pt-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
-                  <span className="text-xs font-semibold text-white">Optimal</span>
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      metrics.gpuPercent !== null
+                        ? 'bg-[#10b981] shadow-[0_0_8px_#10b981]'
+                        : 'bg-zinc-500'
+                    }`}
+                  />
+                  <span className="text-xs font-semibold text-white">
+                    {metrics.gpuPercent !== null ? 'Optimal' : 'Sensor Unavailable'}
+                  </span>
                 </div>
               </div>
 
@@ -270,13 +295,13 @@ export const OverviewView: React.FC = () => {
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[#71717a]">Utilization</span>
                 <span className="font-bold text-white font-mono">
-                  {metrics.gpuPercent.toFixed(0)}%
+                  {metrics.gpuPercent !== null ? `${metrics.gpuPercent.toFixed(0)}%` : 'N/A'}
                 </span>
               </div>
               <div className="w-full h-1.5 rounded-full bg-[#27272a] overflow-hidden">
                 <div
                   className="h-full rounded-full bg-white transition-all duration-500"
-                  style={{ width: `${Math.min(100, metrics.gpuPercent)}%` }}
+                  style={{ width: `${Math.min(100, metrics.gpuPercent ?? 0)}%` }}
                 />
               </div>
             </div>

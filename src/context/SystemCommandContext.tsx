@@ -39,6 +39,18 @@ import {
   isOperationReversible,
 } from '../utils/systemIntelligence';
 import { calculateScanSummary, generateCloudOrganizedPath } from '../utils/storageIntelligence';
+import {
+  fetchLiveHardwareTelemetry,
+  fetchLiveProcessesNative,
+  performVirtualDriveActionNative,
+  verifyVirtualDriveMountNative,
+  openDriveInExplorerNative,
+  terminateProcessNative,
+  executeLocalCommandNative,
+  persistSettingsNative,
+  persistActivityLogNative,
+  getSessionSecurityToken,
+} from '../utils/nativeBridge';
 
 export type ActiveView =
   | 'overview'
@@ -104,8 +116,11 @@ interface SystemCommandContextType {
     remoteName?: string;
     remoteFolder?: string;
     forceMountState?: boolean;
-  }) => void;
-  reconnectVirtualDrive: () => void;
+  }) => Promise<void>;
+  reconnectVirtualDrive: () => Promise<void>;
+  inspectDriveInExplorer: (
+    driveLetter?: string
+  ) => Promise<{ opened: boolean; explorerAccessible: boolean; message: string }>;
   scannedFiles: ScannedFile[];
   scanSummary: StorageScanSummary;
   isScanning: boolean;
@@ -140,11 +155,7 @@ interface SystemCommandContextType {
 const SystemCommandContext = createContext<SystemCommandContextType | null>(null);
 
 const persistActivityToBackend = (log: ActivityLog) => {
-  fetch('/api/activity', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(log),
-  }).catch(() => {});
+  persistActivityLogNative(log).catch(() => {});
 };
 
 export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -164,7 +175,7 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
       actionType: 'scan_storage',
       target: 'G:\\ -> gdrive:Laptop_Full_Backup/C_Drive_User',
       details:
-        'Verified rclone v1.75.1 WinFsp virtual drive mount (1,063 objects, 2.543 GiB) and local SHA-256 index.',
+        'Initialized System Command Center telemetry and verified local SQLite persistence.',
       undoable: false,
       undone: false,
     },
@@ -193,8 +204,64 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearToast = useCallback(() => setToastMessage(null), []);
 
-  // Hydrate persisted state from SQLite backend on mount
+  // Historical sparkline timeline for resource monitor (populated by real telemetry samples)
+  const [metricsHistory, setMetricsHistory] = useState<
+    {
+      time: string;
+      cpu: number;
+      ram: number;
+      gpu: number;
+      disk: number;
+      net: number;
+      cpuTemp: number;
+      gpuTemp: number;
+    }[]
+  >(() => {
+    const arr = [];
+    const now = Date.now();
+    for (let i = 19; i >= 0; i--) {
+      const d = new Date(now - i * 3000);
+      arr.push({
+        time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        cpu: 0,
+        ram: 0,
+        gpu: 0,
+        disk: 0,
+        net: 0,
+        cpuTemp: 0,
+        gpuTemp: 0,
+      });
+    }
+    return arr;
+  });
+
+  // Helper to apply a real telemetry sample to state and history
+  const applyLiveTelemetrySample = useCallback((live: SystemResourceMetrics) => {
+    setMetrics(live);
+    setMetricsHistory((prev) => {
+      const timeStr = new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      const sample = {
+        time: timeStr,
+        cpu: live.cpuTotalPercent,
+        ram: live.ramPercent,
+        gpu: live.gpuPercent ?? 0,
+        disk: live.diskUsagePercent,
+        net: +(live.netDownMbps + live.netUpMbps).toFixed(2),
+        cpuTemp: live.cpuTempCelsius ?? 0,
+        gpuTemp: live.gpuTempCelsius ?? 0,
+      };
+      return [...prev.slice(1), sample];
+    });
+  }, []);
+
+  // Hydrate persisted state, session token, real telemetry, real processes, and real OS mount verification on startup
   useEffect(() => {
+    getSessionSecurityToken().catch(() => {});
+
     fetch('/api/state')
       .then((r) => r.json())
       .then((data) => {
@@ -214,60 +281,54 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
           setCommandHistory(data.commandHistory);
         }
         if (data?.mountState) {
+          const ms = data.mountState;
           setRcloneStatus((prev) => ({
             ...prev,
+            installed: Boolean(ms.rcloneInstalled),
+            version: ms.rcloneVersion || 'Not Installed',
+            winfspInstalled: Boolean(ms.winfspInstalled),
+            winfspVersion: ms.winfspVersion || 'Not Installed',
             mountedGDrive: prev.mountedGDrive
               ? {
                   ...prev.mountedGDrive,
-                  driveLetter: data.mountState.driveLetter,
-                  mountPath: `${data.mountState.driveLetter.replace(':', '')}:\\`,
-                  remoteName: data.mountState.remoteName,
-                  remoteFolder: data.mountState.remoteFolder,
-                  isMounted: data.mountState.isMounted,
-                  connectionHealth: data.mountState.isMounted ? 'Connected' : 'Unmounted',
+                  driveLetter: ms.driveLetter,
+                  mountPath: `${ms.driveLetter.replace(':', '')}:\\`,
+                  remoteName: ms.remoteName,
+                  remoteFolder: ms.remoteFolder,
+                  isMounted: Boolean(ms.isMounted),
+                  processAlive: Boolean(ms.processAlive),
+                  pid: ms.pid ?? null,
+                  drivePathExists: Boolean(ms.drivePathExists),
+                  explorerAccessible: Boolean(ms.explorerAccessible),
+                  statusMessage: ms.statusMessage,
+                  connectionHealth: ms.isMounted ? 'Connected' : 'Unmounted',
                 }
               : prev.mountedGDrive,
           }));
         }
       })
       .catch(() => {});
-  }, []);
+
+    // Immediate initial real telemetry & process fetch
+    fetchLiveHardwareTelemetry()
+      .then((live) => {
+        if (live) applyLiveTelemetrySample(live);
+      })
+      .catch(() => {});
+
+    fetchLiveProcessesNative()
+      .then((liveProcs) => {
+        if (liveProcs.length > 0) {
+          setProcesses(liveProcs);
+        }
+      })
+      .catch(() => {});
+  }, [applyLiveTelemetrySample]);
 
   // Compute live scan summary
   const scanSummary = useMemo(() => {
     return calculateScanSummary(scannedFiles);
   }, [scannedFiles]);
-
-  // Historical sparkline timeline for resource monitor
-  const [metricsHistory, setMetricsHistory] = useState<
-    {
-      time: string;
-      cpu: number;
-      ram: number;
-      gpu: number;
-      disk: number;
-      net: number;
-      cpuTemp: number;
-      gpuTemp: number;
-    }[]
-  >(() => {
-    const arr = [];
-    const now = Date.now();
-    for (let i = 24; i >= 0; i--) {
-      const d = new Date(now - i * 3000);
-      arr.push({
-        time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        cpu: Math.max(8, Math.min(75, 24.0 + Math.sin(i * 0.6) * 6 + (Math.random() * 2 - 1))),
-        ram: 35.6 + Math.sin(i * 0.3) * 1.2,
-        gpu: 21.0 + Math.cos(i * 0.5) * 4,
-        disk: Math.max(1, 8.6 + Math.sin(i * 0.8) * 3),
-        net: Math.max(2, 24.8 + Math.sin(i * 0.4) * 8),
-        cpuTemp: Math.round(48 + Math.sin(i * 0.5) * 2),
-        gpuTemp: Math.round(38 + Math.cos(i * 0.4) * 2),
-      });
-    }
-    return arr;
-  });
 
   // Global Hotkey listener for Ctrl + Shift + Space
   useEffect(() => {
@@ -285,53 +346,26 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isQuickOverlayOpen]);
 
-  // Live lightweight telemetry ticker
+  // Live lightweight telemetry & process ticker (100% real host/Tauri metrics)
   useEffect(() => {
     if (!platformSettings.realTimeMonitoring) return;
 
     const timer = setInterval(() => {
-      setMetrics((prev) => {
-        const cpuNoise = (Math.random() - 0.5) * 2.4;
-        const newCpu = Math.max(8.0, Math.min(88.0, parseFloat((prev.cpuTotalPercent + cpuNoise).toFixed(1))));
-        const gpuNoise = (Math.random() - 0.5) * 2.2;
-        const newGpu = Math.max(6.0, Math.min(92.0, parseFloat((prev.gpuPercent + gpuNoise).toFixed(1))));
-        const netDown = Math.max(2.4, parseFloat((24.8 + (Math.random() - 0.5) * 7.5).toFixed(1)));
-        const netUp = Math.max(0.8, parseFloat((6.4 + (Math.random() - 0.5) * 2.1).toFixed(1)));
-        const cpuTemp = Math.max(41, Math.min(72, Math.round(46 + newCpu * 0.14)));
-        const gpuTemp = Math.max(34, Math.min(68, Math.round(35 + newGpu * 0.14)));
+      fetchLiveHardwareTelemetry()
+        .then((live) => {
+          if (live) applyLiveTelemetrySample(live);
+        })
+        .catch(() => {});
 
-        return {
-          ...prev,
-          cpuTotalPercent: newCpu,
-          cpuTempCelsius: cpuTemp,
-          gpuPercent: newGpu,
-          gpuTempCelsius: gpuTemp,
-          netDownMbps: netDown,
-          netUpMbps: netUp,
-          uptimeSeconds: prev.uptimeSeconds + 2,
-        };
-      });
+      fetchLiveProcessesNative()
+        .then((liveProcs) => {
+          if (liveProcs.length > 0) {
+            setProcesses(liveProcs);
+          }
+        })
+        .catch(() => {});
 
-      setMetricsHistory((prev) => {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const last = prev[prev.length - 1];
-        const nextCpu = Math.max(10, Math.min(82, (last?.cpu || 24) + (Math.random() - 0.5) * 4));
-        const nextGpu = Math.max(10, Math.min(80, (last?.gpu || 21) + (Math.random() - 0.5) * 4));
-        const nextSample = {
-          time: timeStr,
-          cpu: nextCpu,
-          ram: 35.6 + (Math.random() - 0.5) * 0.5,
-          gpu: nextGpu,
-          disk: Math.max(1.2, 8.6 + (Math.random() - 0.5) * 2.5),
-          net: Math.max(4, 24.8 + (Math.random() - 0.5) * 7),
-          cpuTemp: Math.round(46 + nextCpu * 0.14),
-          gpuTemp: Math.round(35 + nextGpu * 0.14),
-        };
-        return [...prev.slice(1), nextSample];
-      });
-
-      // Live progress for ongoing transfer tasks
+      // Deterministic progress for active transfer queue items
       setTransfers((prev) => {
         let changed = false;
         const updated = prev.map((task) => {
@@ -347,7 +381,7 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
               transferredBytes: newTransferred,
               progressPercent: newPercent,
               status: isDone ? ('verifying' as const) : ('transferring' as const),
-              speedMBs: isDone ? 0 : 12.4 + (Math.random() - 0.5) * 1.4,
+              speedMBs: isDone ? 0 : 12.4,
               etaSeconds: isDone ? 0 : Math.ceil((task.totalBytes - newTransferred) / (12.4 * 1048576)),
             };
           }
@@ -367,10 +401,9 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
     }, platformSettings.monitoringIntervalMs || 2500);
 
     return () => clearInterval(timer);
-  }, [platformSettings.realTimeMonitoring, platformSettings.monitoringIntervalMs]);
+  }, [platformSettings.realTimeMonitoring, platformSettings.monitoringIntervalMs, applyLiveTelemetrySample]);
 
-  // 1. Terminate Process with Approval & Safety Enforcement
-  // Section 12 Rule: Process termination is logged for audit, NEVER called reversible!
+  // 1. Terminate Process with Approval, Safety Enforcement & Real OS/Tauri Process Signal
   const terminateProcessWithApproval = useCallback(
     (pid: number) => {
       const target = processes.find((p) => p.pid === pid);
@@ -389,6 +422,15 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
           message: safety.reason || 'Action blocked for Protected System Process.',
         };
       }
+
+      // Invoke real native Tauri / OS process termination
+      terminateProcessNative(pid, target.name)
+        .then((res) => {
+          if (res.terminated) {
+            setProcesses((prev) => prev.filter((p) => p.pid !== pid));
+          }
+        })
+        .catch(() => {});
 
       setProcesses((prev) => prev.filter((p) => p.pid !== pid));
 
@@ -500,97 +542,170 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   }, []);
 
-  // 4. Virtual Drive Mount / Unmount / Configure (WinFsp + rclone mount)
+  // 4. Virtual Drive Mount / Unmount / Configure (Calls native Tauri mount_gdrive_winfsp or verified OS mount check)
   const toggleVirtualDriveMount = useCallback(
-    (options?: {
+    async (options?: {
       driveLetter?: string;
       remoteName?: string;
       remoteFolder?: string;
       forceMountState?: boolean;
     }) => {
-      setRcloneStatus((prev) => {
-        if (!prev.mountedGDrive) return prev;
-        const prevMount = prev.mountedGDrive;
-        const nextMounted =
-          options?.forceMountState !== undefined ? options.forceMountState : !prevMount.isMounted;
-        const nextLetter = options?.driveLetter || prevMount.driveLetter;
-        const nextRemote = options?.remoteName || prevMount.remoteName;
-        const nextFolder =
-          options?.remoteFolder !== undefined ? options.remoteFolder : prevMount.remoteFolder;
+      const prevMount = rcloneStatus.mountedGDrive;
+      const requestedMount =
+        options?.forceMountState !== undefined
+          ? options.forceMountState
+          : !(prevMount?.isMounted ?? false);
+      const nextLetter = options?.driveLetter || prevMount?.driveLetter || 'G:';
+      const nextRemote = options?.remoteName || prevMount?.remoteName || 'gdrive:';
+      const nextFolder =
+        options?.remoteFolder !== undefined
+          ? options.remoteFolder
+          : prevMount?.remoteFolder || 'Laptop_Full_Backup/C_Drive_User';
 
-        const updatedMount = {
-          ...prevMount,
-          driveLetter: nextLetter,
-          mountPath: `${nextLetter.replace(':', '')}:\\`,
-          remoteName: nextRemote,
-          remoteFolder: nextFolder,
-          isMounted: nextMounted,
-          connectionHealth: nextMounted ? ('Connected' as const) : ('Unmounted' as const),
-        };
+      const verified = await performVirtualDriveActionNative({
+        action: requestedMount ? 'mount' : 'unmount',
+        driveLetter: nextLetter,
+        remoteName: nextRemote,
+        remoteFolder: nextFolder,
+      });
 
-        fetch('/api/mount', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            driveLetter: nextLetter,
-            remoteName: nextRemote,
-            remoteFolder: nextFolder,
-            isMounted: nextMounted,
-          }),
-        }).catch(() => {});
+      setRcloneStatus((prev) => ({
+        ...prev,
+        installed: verified.rcloneInstalled,
+        version: verified.rcloneVersion,
+        winfspInstalled: verified.winfspInstalled,
+        winfspVersion: verified.winfspVersion,
+        mountedGDrive: prev.mountedGDrive
+          ? {
+              ...prev.mountedGDrive,
+              driveLetter: verified.driveLetter,
+              mountPath: verified.mountPath,
+              remoteName: verified.remoteName,
+              remoteFolder: verified.remoteFolder,
+              isMounted: verified.isMounted,
+              processAlive: verified.processAlive,
+              pid: verified.pid,
+              drivePathExists: verified.drivePathExists,
+              explorerAccessible: verified.explorerAccessible,
+              statusMessage: verified.message,
+              connectionHealth: verified.connectionHealth,
+            }
+          : null,
+      }));
 
-        const logId = `mnt-${Date.now()}`;
-        const logEntry: ActivityLog = {
-          id: logId,
-          timestamp: new Date().toLocaleTimeString(),
-          actionType: 'mount_drive',
-          target: `Virtual Drive ${nextLetter} (${nextRemote}${nextFolder})`,
-          details: nextMounted
-            ? `Mounted ${nextRemote}${nextFolder} as Windows drive ${nextLetter} via WinFsp.`
-            : `Safely unmounted virtual drive ${nextLetter} and flushed VFS cache.`,
-          undoable: true,
-          undone: false,
-          previousState: {
-            driveLetter: prevMount.driveLetter,
-            remoteName: prevMount.remoteName,
-            remoteFolder: prevMount.remoteFolder,
-            isMounted: prevMount.isMounted,
-          },
-        };
-        setActivityLogs((l) => [logEntry, ...l]);
-        persistActivityToBackend(logEntry);
+      const logId = `mnt-${Date.now()}`;
+      const logEntry: ActivityLog = {
+        id: logId,
+        timestamp: new Date().toLocaleTimeString(),
+        actionType: 'mount_drive',
+        target: `Virtual Drive ${verified.driveLetter} (${nextRemote}${nextFolder})`,
+        details: verified.message,
+        undoable: true,
+        undone: false,
+        previousState: prevMount
+          ? {
+              driveLetter: prevMount.driveLetter,
+              remoteName: prevMount.remoteName,
+              remoteFolder: prevMount.remoteFolder,
+              isMounted: prevMount.isMounted,
+            }
+          : undefined,
+      };
+      setActivityLogs((l) => [logEntry, ...l]);
+      persistActivityToBackend(logEntry);
 
-        setToastMessage({
-          type: 'success',
-          text: nextMounted
-            ? `Mounted ${nextRemote}${nextFolder} to Windows File Explorer drive ${nextLetter}`
-            : `Unmounted virtual drive ${nextLetter}`,
-          undoActionId: logId,
-        });
-
-        return { ...prev, mountedGDrive: updatedMount };
+      setToastMessage({
+        type:
+          requestedMount && !verified.isMounted
+            ? 'error'
+            : verified.isMounted
+            ? 'success'
+            : 'info',
+        text: verified.message,
+        undoActionId: verified.isMounted ? logId : undefined,
       });
     },
-    []
+    [rcloneStatus.mountedGDrive]
   );
 
-  const reconnectVirtualDrive = useCallback(() => {
-    setRcloneStatus((prev) => {
-      if (!prev.mountedGDrive) return prev;
-      return {
-        ...prev,
-        mountedGDrive: {
-          ...prev.mountedGDrive,
-          isMounted: true,
-          connectionHealth: 'Connected',
-        },
-      };
+  // Reconnect Virtual Drive — checks actual OS mount and dependencies before reporting Connected
+  const reconnectVirtualDrive = useCallback(async () => {
+    const currentMount = rcloneStatus.mountedGDrive;
+    const driveLetter = currentMount?.driveLetter || 'G:';
+    const remoteName = currentMount?.remoteName || 'gdrive:';
+    const remoteFolder = currentMount?.remoteFolder || 'Laptop_Full_Backup/C_Drive_User';
+
+    const verified = await performVirtualDriveActionNative({
+      action: 'reconnect',
+      driveLetter,
+      remoteName,
+      remoteFolder,
     });
+
+    setRcloneStatus((prev) => ({
+      ...prev,
+      installed: verified.rcloneInstalled,
+      version: verified.rcloneVersion,
+      winfspInstalled: verified.winfspInstalled,
+      winfspVersion: verified.winfspVersion,
+      mountedGDrive: prev.mountedGDrive
+        ? {
+            ...prev.mountedGDrive,
+            driveLetter: verified.driveLetter,
+            mountPath: verified.mountPath,
+            isMounted: verified.isMounted,
+            processAlive: verified.processAlive,
+            pid: verified.pid,
+            drivePathExists: verified.drivePathExists,
+            explorerAccessible: verified.explorerAccessible,
+            statusMessage: verified.message,
+            connectionHealth: verified.connectionHealth,
+          }
+        : null,
+    }));
+
     setToastMessage({
-      type: 'success',
-      text: 'Reconnected WinFsp virtual drive G: and verified remote folder access.',
+      type: verified.isMounted ? 'success' : 'error',
+      text: verified.message,
     });
-  }, []);
+  }, [rcloneStatus.mountedGDrive]);
+
+  // Inspect drive letter in Windows Explorer after verifying the mount exists on OS
+  const inspectDriveInExplorer = useCallback(
+    async (driveLetter?: string) => {
+      const targetDrive = driveLetter || rcloneStatus.mountedGDrive?.driveLetter || 'G:';
+      const verifyFirst = await verifyVirtualDriveMountNative(targetDrive);
+      const explorerRes = await openDriveInExplorerNative(targetDrive);
+
+      setRcloneStatus((prev) => ({
+        ...prev,
+        installed: verifyFirst.rcloneInstalled,
+        version: verifyFirst.rcloneVersion,
+        winfspInstalled: verifyFirst.winfspInstalled,
+        winfspVersion: verifyFirst.winfspVersion,
+        mountedGDrive: prev.mountedGDrive
+          ? {
+              ...prev.mountedGDrive,
+              isMounted: verifyFirst.isMounted,
+              processAlive: verifyFirst.processAlive,
+              pid: verifyFirst.pid,
+              drivePathExists: verifyFirst.drivePathExists,
+              explorerAccessible: verifyFirst.explorerAccessible,
+              statusMessage: explorerRes.message,
+              connectionHealth: verifyFirst.connectionHealth,
+            }
+          : null,
+      }));
+
+      setToastMessage({
+        type: explorerRes.opened ? 'success' : 'info',
+        text: explorerRes.message,
+      });
+
+      return explorerRes;
+    },
+    [rcloneStatus.mountedGDrive?.driveLetter]
+  );
 
   // 5. Apply Optimization with Confirmation & Genuine Restore
   const applyOptimizationWithApproval = useCallback(
@@ -602,15 +717,6 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
       setOptimizations((prev) =>
         prev.map((o) => (o.id === id ? { ...o, applied: nextApplied } : o))
       );
-
-      // Adjust live metrics if CPU optimization applied
-      if (id === 'opt-temp-masquerade' && nextApplied) {
-        setMetrics((prev) => ({
-          ...prev,
-          cpuTotalPercent: Math.max(8, +(prev.cpuTotalPercent - 8.5).toFixed(1)),
-          cpuTempCelsius: Math.max(40, prev.cpuTempCelsius - 4),
-        }));
-      }
 
       const logId = `opt-${Date.now()}`;
       const logEntry: ActivityLog = {
@@ -637,30 +743,30 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
     [optimizations]
   );
 
-  // 6. Controlled Local Command Execution Engine
+  // 6. Controlled Local Command Execution Engine (Authenticated with X-SCC-Session-Token)
   const executeLocalCommand = useCallback(
     async (command: string, workingDir: string, approved = false) => {
       try {
-        const res = await fetch('/api/command/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ command, workingDir, approved }),
+        const data = await executeLocalCommandNative({
+          command,
+          workingDir,
+          approved,
         });
-        const data = await res.json();
 
-        if (data?.requiresConfirmation) {
+        if ('requiresConfirmation' in data && data.requiresConfirmation) {
           return { requiresConfirmation: true, validation: data.validation };
         }
 
-        if (data?.id) {
-          setCommandHistory((prev) => [data, ...prev]);
+        const entry = data as CommandExecutionEntry;
+        if (entry?.id) {
+          setCommandHistory((prev) => [entry, ...prev]);
 
           const logEntry: ActivityLog = {
             id: `cmdlog-${Date.now()}`,
             timestamp: new Date().toLocaleTimeString(),
             actionType: 'command_exec',
             target: command,
-            details: `Executed command in ${workingDir} -> Status: ${data.status} (Exit code: ${data.exitCode}, ${data.durationMs}ms).`,
+            details: `Executed command in ${entry.workingDir} -> Status: ${entry.status} (Exit code: ${entry.exitCode}, ${entry.durationMs}ms).`,
             undoable: false,
             undone: false,
           };
@@ -668,7 +774,7 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
           persistActivityToBackend(logEntry);
         }
 
-        return { entry: data };
+        return { entry };
       } catch (err: any) {
         return {
           entry: {
@@ -696,11 +802,7 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
   const updatePlatformSettings = useCallback((partial: Partial<PlatformSettings>) => {
     setPlatformSettings((prev) => {
       const updated = { ...prev, ...partial };
-      fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated),
-      }).catch(() => {});
+      persistSettingsNative(updated).catch(() => {});
 
       const changedKeys = Object.keys(partial).join(', ');
       const logId = `set-${Date.now()}`;
@@ -755,11 +857,7 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
         setToastMessage({ type: 'success', text: 'Reverted optimization profile.' });
       } else if (logToUndo.actionType === 'settings_update' && logToUndo.previousState) {
         setPlatformSettings(logToUndo.previousState);
-        fetch('/api/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(logToUndo.previousState),
-        }).catch(() => {});
+        persistSettingsNative(logToUndo.previousState).catch(() => {});
         setToastMessage({ type: 'success', text: 'Restored previous platform settings.' });
       }
 
@@ -1047,6 +1145,7 @@ export const SystemCommandProvider: React.FC<{ children: React.ReactNode }> = ({
         rcloneStatus,
         toggleVirtualDriveMount,
         reconnectVirtualDrive,
+        inspectDriveInExplorer,
         scannedFiles,
         scanSummary,
         isScanning,

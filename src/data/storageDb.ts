@@ -13,13 +13,13 @@ import {
  * - Existing mounted G: drive -> Laptop_Full_Backup/C_Drive_User (1,063 objects, 2.543 GiB)
  */
 export const INITIAL_RCLONE_STATUS: RcloneStatus = {
-  installed: true,
-  version: 'rclone v1.75.1 (windows/amd64)',
-  osArch: 'windows/amd64 (Windows 11 Pro 23H2)',
+  installed: false,
+  version: 'Probing host...',
+  osArch: 'host-os',
   binaryPath: 'C:\\rclone\\rclone.exe',
   configPath: 'C:\\Users\\User\\AppData\\Roaming\\rclone\\rclone.conf',
-  winfspInstalled: true,
-  winfspVersion: 'WinFsp 2024.1 (v2.0.23075)',
+  winfspInstalled: false,
+  winfspVersion: 'Probing host...',
   remotes: ['gdrive:', 'gdrive2:'],
   remoteDetails: [
     {
@@ -58,11 +58,16 @@ export const INITIAL_RCLONE_STATUS: RcloneStatus = {
     totalGB: 5120, // 5 TiB
     usedGB: 22.37,
     freeGB: 5080.06, // 4.961 TiB
-    isMounted: true,
+    isMounted: false,
+    processAlive: false,
+    pid: null,
+    drivePathExists: false,
+    explorerAccessible: false,
+    statusMessage: 'Awaiting OS mount verification...',
     autoMountOnStartup: true,
     autoReconnect: true,
-    connectionHealth: 'Connected',
-    provider: 'WinFsp + rclone v1.75.1 Virtual File System (cmount)',
+    connectionHealth: 'Unmounted',
+    provider: 'WinFsp + rclone Virtual File System (cmount)',
   },
 };
 
