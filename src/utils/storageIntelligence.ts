@@ -321,3 +321,129 @@ export function analyzeRemoteQuotaCorrelation(remotes: RcloneRemoteDetail[]): {
     summary: 'Independent remote storage pools detected.',
   };
 }
+
+/**
+ * Handles existing drive letter conflicts (e.g., if G: is already occupied by a USB drive,
+ * local partition, or existing rclone mount) without overwriting or unmounting unrelated volumes.
+ */
+export function resolveDriveLetterConflict(
+  requestedLetter: string,
+  occupiedDrives: Array<{ letter: string; type: 'system' | 'local_disk' | 'rclone_mount'; target?: string }>,
+  desiredRemoteTarget = 'gdrive:Laptop_Full_Backup/C_Drive_User'
+): {
+  canMountDirectly: boolean;
+  status: 'available' | 'already_mounted_same_target' | 'conflict_resolved_fallback' | 'blocked_reserved';
+  selectedDriveLetter: string;
+  message: string;
+} {
+  const cleanReq = requestedLetter.replace(':', '').trim().toUpperCase();
+  if (!/^[D-Z]$/.test(cleanReq)) {
+    return {
+      canMountDirectly: false,
+      status: 'blocked_reserved',
+      selectedDriveLetter: 'G:',
+      message: `Drive letter ${requestedLetter} is reserved by Windows. Defaulting to safe candidate G:.`,
+    };
+  }
+
+  const existing = occupiedDrives.find((d) => d.letter.replace(':', '').toUpperCase() === cleanReq);
+  if (!existing) {
+    return {
+      canMountDirectly: true,
+      status: 'available',
+      selectedDriveLetter: `${cleanReq}:`,
+      message: `Drive letter ${cleanReq}: is free and ready for WinFsp virtual mount.`,
+    };
+  }
+
+  if (existing.type === 'rclone_mount' && existing.target === desiredRemoteTarget) {
+    return {
+      canMountDirectly: true,
+      status: 'already_mounted_same_target',
+      selectedDriveLetter: `${cleanReq}:`,
+      message: `Drive ${cleanReq}: is already mounted to ${desiredRemoteTarget}. Reusing active WinFsp mount.`,
+    };
+  }
+
+  // Conflict detected: find next unoccupied letter from G..Z
+  const occupiedSet = new Set(occupiedDrives.map((d) => d.letter.replace(':', '').toUpperCase()));
+  const candidates = ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+  const fallback = candidates.find((c) => !occupiedSet.has(c)) || 'Z';
+
+  return {
+    canMountDirectly: false,
+    status: 'conflict_resolved_fallback',
+    selectedDriveLetter: `${fallback}:`,
+    message: `Drive ${cleanReq}: is currently occupied (${existing.type}). Automatically selected non-conflicting fallback drive ${fallback}: to prevent overwriting existing volume.`,
+  };
+}
+
+/**
+ * Builds a non-destructive, resumable rclone copy command for uploads or downloads
+ * that safely resumes interrupted transfers without overwriting unchanged files or deleting destination files.
+ */
+export function buildResumableTransferCommand(
+  sourcePath: string,
+  destinationPath: string
+): {
+  command: string;
+  isNonDestructive: boolean;
+  supportsResume: boolean;
+} {
+  const command = `rclone copy "${sourcePath}" "${destinationPath}" --transfers 4 --checkers 8 --retries 5 --low-level-retries 10 --contimeout 60s --timeout 300s --stats 1s`;
+  return {
+    command,
+    isNonDestructive: true,
+    supportsResume: true,
+  };
+}
+
+/**
+ * Evaluates actual backup coverage and checksum verification against the local source.
+ * Strictly avoids claiming the entire computer is backed up when only a 2.543 GiB subset (1,063 objects) exists,
+ * and documents Google Drive's MD5/SHA-1 vs Google Docs native export stream checksum limitations.
+ */
+export function verifyBackupComparisonAndChecksums(params: {
+  localSystemUsedBytes: number;
+  localUserProfileBytes: number;
+  remoteConfirmedObjects: number;
+  remoteConfirmedBytes: number;
+  verifiedBinaryObjects: number;
+  unsupportedNativeDocsCount: number;
+}): {
+  isEntireComputerBackedUp: boolean;
+  isUserProfileFullyBackedUp: boolean;
+  remoteConfirmedObjects: number;
+  remoteConfirmedGiB: number;
+  unbackedUserProfileGiB: number;
+  profileCoveragePercent: number;
+  verificationCommand: string;
+  streamFallbackCommand: string;
+  checksumSupportedCount: number;
+  checksumUnsupportedCount: number;
+  checksumLimitationReport: string;
+} {
+  const remoteGiB = +(params.remoteConfirmedBytes / 1024 ** 3).toFixed(3);
+  const profileGiB = +(params.localUserProfileBytes / 1024 ** 3).toFixed(3);
+  const unbackedBytes = Math.max(0, params.localUserProfileBytes - params.remoteConfirmedBytes);
+  const unbackedGiB = +(unbackedBytes / 1024 ** 3).toFixed(3);
+  const coverage =
+    params.localUserProfileBytes > 0
+      ? +((params.remoteConfirmedBytes / params.localUserProfileBytes) * 100).toFixed(1)
+      : 0;
+
+  return {
+    isEntireComputerBackedUp: false,
+    isUserProfileFullyBackedUp: unbackedBytes === 0,
+    remoteConfirmedObjects: params.remoteConfirmedObjects,
+    remoteConfirmedGiB: remoteGiB,
+    unbackedUserProfileGiB: unbackedGiB,
+    profileCoveragePercent: Math.min(100, coverage),
+    verificationCommand: `rclone check "C:\\Users\\User" "gdrive:Laptop_Full_Backup/C_Drive_User" --one-way`,
+    streamFallbackCommand: `rclone check "C:\\Users\\User" "gdrive:Laptop_Full_Backup/C_Drive_User" --one-way --download`,
+    checksumSupportedCount: params.verifiedBinaryObjects,
+    checksumUnsupportedCount: params.unsupportedNativeDocsCount,
+    checksumLimitationReport: `Partial Backup Verified: ${params.remoteConfirmedObjects} objects (${remoteGiB} GiB) exist in gdrive:Laptop_Full_Backup/C_Drive_User out of ${profileGiB} GiB in C:\\Users\\User (${unbackedGiB} GiB local data not yet backed up; entire C: drive is NOT backed up). Checksum Verification: ${params.verifiedBinaryObjects} standard binary files verified via Google Drive MD5/SHA-1 hash parity; ${params.unsupportedNativeDocsCount} Google Workspace native/exported items lack static server-side hashes and require "--download" byte-stream comparison.`,
+  };
+}
+

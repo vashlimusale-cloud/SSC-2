@@ -9,6 +9,9 @@ import {
   validateRcloneCommandSafety,
   buildWinFspMountCommand,
   analyzeRemoteQuotaCorrelation,
+  resolveDriveLetterConflict,
+  buildResumableTransferCommand,
+  verifyBackupComparisonAndChecksums,
 } from './storageIntelligence';
 import { ScannedFile, RcloneRemoteDetail } from '../types/storage';
 
@@ -125,4 +128,60 @@ describe('Storage Intelligence & rclone Safety Logic', () => {
     });
     assert.equal(path, 'gdrive:Laptop_Full_Backup/C_Drive_User/Documents/Budget.xlsx');
   });
+
+  it('handles existing G: drive conflicts safely without overwriting local disks', () => {
+    const conflict = resolveDriveLetterConflict(
+      'G:',
+      [
+        { letter: 'C:', type: 'system' },
+        { letter: 'G:', type: 'local_disk' },
+      ],
+      'gdrive:Laptop_Full_Backup/C_Drive_User'
+    );
+    assert.equal(conflict.canMountDirectly, false);
+    assert.equal(conflict.status, 'conflict_resolved_fallback');
+    assert.equal(conflict.selectedDriveLetter, 'H:');
+
+    const sameMount = resolveDriveLetterConflict(
+      'G:',
+      [
+        { letter: 'C:', type: 'system' },
+        { letter: 'G:', type: 'rclone_mount', target: 'gdrive:Laptop_Full_Backup/C_Drive_User' },
+      ],
+      'gdrive:Laptop_Full_Backup/C_Drive_User'
+    );
+    assert.equal(sameMount.canMountDirectly, true);
+    assert.equal(sameMount.status, 'already_mounted_same_target');
+  });
+
+  it('builds non-destructive resumable transfer commands for interrupted uploads/downloads', () => {
+    const resumable = buildResumableTransferCommand(
+      'C:\\Users\\User\\Documents',
+      'gdrive:Laptop_Full_Backup/C_Drive_User/Documents'
+    );
+    assert.equal(resumable.isNonDestructive, true);
+    assert.equal(resumable.supportsResume, true);
+    assert.ok(resumable.command.startsWith('rclone copy'));
+    assert.ok(resumable.command.includes('--retries 5'));
+  });
+
+  it('verifies backup comparison truthfully (2.543 GiB / 1,063 objects is NOT entire computer) and reports Google Drive checksum limitations', () => {
+    const audit = verifyBackupComparisonAndChecksums({
+      localSystemUsedBytes: 1084 * 1024 ** 3,
+      localUserProfileBytes: Math.round(16.743 * 1024 ** 3),
+      remoteConfirmedObjects: 1063,
+      remoteConfirmedBytes: 2730525491,
+      verifiedBinaryObjects: 1049,
+      unsupportedNativeDocsCount: 14,
+    });
+    assert.equal(audit.isEntireComputerBackedUp, false);
+    assert.equal(audit.isUserProfileFullyBackedUp, false);
+    assert.equal(audit.remoteConfirmedObjects, 1063);
+    assert.equal(audit.remoteConfirmedGiB, 2.543);
+    assert.equal(audit.checksumSupportedCount, 1049);
+    assert.equal(audit.checksumUnsupportedCount, 14);
+    assert.ok(audit.checksumLimitationReport.includes('entire C: drive is NOT backed up'));
+    assert.ok(audit.checksumLimitationReport.includes('--download'));
+  });
 });
+

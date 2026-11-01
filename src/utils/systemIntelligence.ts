@@ -127,16 +127,122 @@ export function isOperationReversible(actionType: ActivityLog['actionType']): bo
 }
 
 /**
+ * Strict allowlist of permitted command binaries for local execution.
+ */
+export const ALLOWED_COMMAND_BINARIES = new Set([
+  'rclone',
+  'c:\\rclone\\rclone.exe',
+  'rclone.exe',
+  'systeminfo',
+  'hostname',
+  'whoami',
+  'tasklist',
+  'ipconfig',
+  'netstat',
+  'ping',
+  'sfc',
+  'dism',
+  'dism.exe',
+  'chkdsk',
+  'netsh',
+  'sc',
+  'sc.exe',
+  'net',
+  'powercfg',
+  'wevtutil',
+  'taskkill',
+  'ver',
+  'where',
+  'dir',
+  'echo',
+  'uname',
+  'uptime',
+]);
+
+/**
+ * Tokenizes a command line string into an array of arguments while respecting quotes.
+ */
+export function tokenizeCommandArgs(commandLine: string): string[] {
+  const args: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  let quoteChar = '';
+
+  for (let i = 0; i < commandLine.length; i++) {
+    const ch = commandLine[i];
+    if ((ch === '"' || ch === "'") && (!inQuotes || ch === quoteChar)) {
+      if (inQuotes) {
+        inQuotes = false;
+        quoteChar = '';
+      } else {
+        inQuotes = true;
+        quoteChar = ch;
+      }
+      continue;
+    }
+    if (/\s/.test(ch) && !inQuotes) {
+      if (current.length > 0) {
+        args.push(current);
+        current = '';
+      }
+    } else {
+      current += ch;
+    }
+  }
+  if (current.length > 0) {
+    args.push(current);
+  }
+  return args;
+}
+
+/**
+ * Detects shell command chaining, redirection, or subshell injection operators outside quotes.
+ */
+export function hasCommandInjectionTokens(commandLine: string): {
+  detected: boolean;
+  operator?: string;
+} {
+  let inQuotes = false;
+  let quoteChar = '';
+
+  for (let i = 0; i < commandLine.length; i++) {
+    const ch = commandLine[i];
+    const next = commandLine[i + 1] || '';
+
+    if ((ch === '"' || ch === "'") && (!inQuotes || ch === quoteChar)) {
+      inQuotes = !inQuotes;
+      quoteChar = inQuotes ? ch : '';
+      continue;
+    }
+
+    if (!inQuotes) {
+      if (ch === ';' || ch === '|' || ch === '`' || ch === '>' || ch === '<' || ch === '\n' || ch === '\r') {
+        return { detected: true, operator: ch === '\n' || ch === '\r' ? 'newline' : ch };
+      }
+      if (ch === '&' && next === '&') {
+        return { detected: true, operator: '&&' };
+      }
+      if (ch === '&') {
+        return { detected: true, operator: '&' };
+      }
+      if (ch === '$' && next === '(') {
+        return { detected: true, operator: '$()' };
+      }
+    }
+  }
+  return { detected: false };
+}
+
+/**
  * Validates and classifies local Windows / system commands before execution.
  * Enforces Section 9 & 13 security rules:
- * - Blocks destructive disk/OS commands
- * - Detects command chaining injection when suspicious
- * - Identifies Administrator-level actions
- * - Explains what the command will do before execution
+ * - Blocks shell command chaining / injection metacharacters (&&, ||, ;, |, `, $(), >, <)
+ * - Enforces binary allowlist
+ * - Blocks destructive disk/OS/cloud commands
+ * - Identifies Administrator-level actions and enforces explicit user approval gates
  */
 export function validateLocalCommand(rawCommand: string, workingDir = 'C:\\Users\\Admin'): CommandValidationResult {
   const trimmed = rawCommand.trim();
-  const lower = trimmed.toLowerCase();
 
   if (!trimmed) {
     return {
@@ -149,18 +255,31 @@ export function validateLocalCommand(rawCommand: string, workingDir = 'C:\\Users
     };
   }
 
-  // Block destructive system/file commands
+  // 1. Block command chaining / shell injection attempts first
+  const injection = hasCommandInjectionTokens(trimmed);
+  if (injection.detected) {
+    return {
+      allowed: false,
+      riskLevel: 'Blocked Destructive',
+      requiresAdmin: false,
+      requiresApproval: true,
+      explanation: `Blocked shell command chaining or redirection operator ("${injection.operator}") in "${workingDir}".`,
+      blockedReason: `Command Injection Protection: Shell chaining, pipe, redirection, or subshell operator ("${injection.operator}") is strictly prohibited.`,
+    };
+  }
+
+  // 2. Block destructive system/file/cloud commands
   const destructivePatterns = [
     /\bformat\s+[a-z]:/i,
     /\bdel\s+.*\/[fsq]/i,
-    /\brd\s+\/s\s+\/q\s+c:\\windows/i,
-    /\brmdir\s+\/s\s+\/q\s+c:\\/i,
-    /\brm\s+-rf\s+\/($|\s|\*)/i,
-    /\breg\s+delete\s+hklm\\(system|sam|security)/i,
+    /\brd\s+\/s/i,
+    /\brmdir\s+\/s/i,
+    /\brm\s+-[rf]/i,
+    /\breg\s+delete\b/i,
     /\bbcdedit\s+\/delete/i,
     /\bdiskpart\b/i,
     /\bcipher\s+\/w:/i,
-    /\brclone\s+(purge|delete)\b/i,
+    /\brclone\s+(purge|delete|deletefile|rmdirs|sync|move)\b/i,
     /\bpowershell.*-enc(odedcommand)?\b/i,
     /\biex\s*\(/i,
     /\binvoke-expression\b/i,
@@ -173,17 +292,31 @@ export function validateLocalCommand(rawCommand: string, workingDir = 'C:\\Users
         riskLevel: 'Blocked Destructive',
         requiresAdmin: true,
         requiresApproval: true,
-        explanation: `Blocked command targeting critical OS or user storage in "${workingDir}".`,
+        explanation: `Blocked destructive command targeting OS or storage in "${workingDir}".`,
         blockedReason:
-          'Security Policy Violation: Destructive disk, registry, encoded payload, or automatic deletion commands are strictly prohibited.',
+          'Security Policy Violation: Destructive disk, registry, encoded payload, rclone sync/move/purge/delete, or recursive deletion commands are strictly prohibited.',
       };
     }
   }
 
-  // Identify Administrator-level commands
+  // 3. Verify executable binary against allowlist
+  const tokens = tokenizeCommandArgs(trimmed);
+  const firstToken = (tokens[0] || '').toLowerCase();
+  if (!ALLOWED_COMMAND_BINARIES.has(firstToken)) {
+    return {
+      allowed: false,
+      riskLevel: 'Blocked Destructive',
+      requiresAdmin: false,
+      requiresApproval: true,
+      explanation: `Executable "${tokens[0] || trimmed}" is not on the System Command Center verified allowlist.`,
+      blockedReason: `Command Allowlist Violation: Binary "${tokens[0] || trimmed}" is not authorized for execution.`,
+    };
+  }
+
+  // 4. Identify Administrator-level commands
   const adminPatterns = [
-    /\bsfc\s+\/scannow/i,
-    /\bdism(\.exe)?\s+\/online/i,
+    /\bsfc\b/i,
+    /\bdism(\.exe)?\b/i,
     /\bchkdsk\b/i,
     /\bnetsh\s+(winsock|int|advfirewall)/i,
     /\bipconfig\s+\/(flushdns|release|renew)/i,
@@ -200,20 +333,15 @@ export function validateLocalCommand(rawCommand: string, workingDir = 'C:\\Users
         riskLevel: 'Privileged Admin',
         requiresAdmin: true,
         requiresApproval: true,
-        explanation: `Executes elevated Windows administrative utility ("${trimmed.split(' ')[0]}") in ${workingDir}. Requires explicit User Approval and Administrator privileges.`,
+        explanation: `Executes elevated Windows administrative utility ("${tokens[0]}") in ${workingDir}. Requires explicit User Approval and Administrator privileges.`,
       };
     }
   }
 
-  // Identify System or Cloud Modification commands
+  // 5. Identify System or Cloud Modification commands
   const modificationPatterns = [
     /\brclone\s+(copy|mount|mkdir|check)\b/i,
     /\btaskkill\b/i,
-    /\breg\s+add\b/i,
-    /\bmkdir\b/i,
-    /\bcopy\b/i,
-    /\bxcopy\b/i,
-    /\brobocopy\b/i,
   ];
 
   for (const pattern of modificationPatterns) {
@@ -228,23 +356,29 @@ export function validateLocalCommand(rawCommand: string, workingDir = 'C:\\Users
     }
   }
 
-  // Default: Safe Read-Only inspection command (e.g., systeminfo, tasklist, rclone listremotes,rclone about, dir, whoami, hostname, netstat, ping)
+  // 6. Default: Verified allowlisted Safe Read-Only inspection command
   return {
     allowed: true,
     riskLevel: 'Safe Read-Only',
     requiresAdmin: false,
-    requiresApproval: lower.includes('&&') || lower.includes(';'),
+    requiresApproval: false,
     explanation: `Runs read-only diagnostic inspection ("${trimmed}") in working directory ${workingDir}. Does not modify system state or user files.`,
   };
 }
 
 /**
- * Redacts OAuth tokens, client secrets, and bearer tokens from logs and terminal output.
+ * Redacts OAuth tokens, client secrets, GitHub PATs, and bearer tokens from logs and terminal output.
  */
 export function redactSecretsFromOutput(input: string): string {
   if (!input) return '';
   return input
-    .replace(/(access_token|refresh_token|client_secret|password|api_key)\s*["':=]\s*["']?([^"'\s,}]+)["']?/gi, '$1="[REDACTED]"')
+    .replace(
+      /(access_token|refresh_token|client_secret|password|api_key|github_token|gh_token|token)\s*["':=]\s*["']?([^"'\s,}]+)["']?/gi,
+      '$1="[REDACTED]"'
+    )
+    .replace(/Bearer\s+[A-Za-z0-9\-._~+/]+=*/gi, 'Bearer [REDACTED_BEARER_TOKEN]')
+    .replace(/ghp_[0-9A-Za-z]{20,}/g, 'ghp_[REDACTED_GITHUB_PAT]')
+    .replace(/github_pat_[0-9A-Za-z_]{20,}/g, 'github_pat_[REDACTED_GITHUB_PAT]')
     .replace(/ya29\.[0-9A-Za-z\-_]+/g, 'ya29.[REDACTED_GOOGLE_OAUTH_TOKEN]')
     .replace(/AIza[0-9A-Za-z\-_]{30,}/g, 'AIza[REDACTED_API_KEY]');
 }
